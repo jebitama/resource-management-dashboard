@@ -14,15 +14,18 @@
  */
 
 import { memo, useMemo, useCallback, useState } from 'react';
+// @ts-expect-error — @types/react-window lags behind react-window v2 exports
 import { FixedSizeList as List } from 'react-window';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useResources, useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
 import { useAppStore } from '@/store/appStore';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Button } from '@/components/ui/Button';
+import { CreateResourceModal } from '@/features/resources/components/CreateResourceModal';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatPercentage, formatRelativeTime } from '@/lib/utils';
-import type { Resource, ResourceStatusType, SortConfig } from '@/types';
+import type { Resource, ResourceStatusType } from '@/types';
 import { ResourceStatus, Department } from '@/types';
 
 // ---------- Constants ----------
@@ -266,6 +269,9 @@ export function ResourcesView() {
   const { data: resources, isLoading, error, refetch } = useResources(filters);
   const { mutate: updateStatus } = useUpdateResourceStatus();
 
+  // Modal state for Create Resource form
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
   // State for container dimensions
   const [containerHeight, setContainerHeight] = useState(600);
 
@@ -366,9 +372,23 @@ export function ResourcesView() {
       className="flex h-full flex-col p-6"
     >
       {/* Page Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-text-primary">{t('resources.title')}</h1>
-        <p className="mt-1 text-sm text-text-secondary">{t('resources.subtitle')}</p>
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">{t('resources.title')}</h1>
+          <p className="mt-1 text-sm text-text-secondary">{t('resources.subtitle')}</p>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => setIsCreateModalOpen(true)}
+          leftIcon={
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          }
+        >
+          Create Resource
+        </Button>
       </div>
 
       {/* Filters */}
@@ -394,12 +414,9 @@ export function ResourcesView() {
           <div className="flex h-64 items-center justify-center">
             <div className="space-y-3 text-center">
               <p className="text-sm text-destructive">{t('common.error')}</p>
-              <button
-                onClick={() => refetch()}
-                className="rounded-lg bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:opacity-90 transition-opacity"
-              >
+              <Button variant="primary" size="sm" onClick={() => refetch()}>
                 {t('common.retry')}
-              </button>
+              </Button>
             </div>
           </div>
         ) : sortedData.length === 0 ? (
@@ -456,6 +473,13 @@ export function ResourcesView() {
           </>
         )}
       </div>
+
+      {/* Create Resource Modal */}
+      <CreateResourceModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => refetch()}
+      />
     </motion.div>
   );
 }
