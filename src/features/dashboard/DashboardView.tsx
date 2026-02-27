@@ -8,7 +8,7 @@
  * ==========================================================================
  */
 
-import { useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client/react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -19,6 +19,7 @@ import { GET_DASHBOARD_METRICS } from '@/graphql/queries';
 import type { GetDashboardMetricsQuery } from '@/types';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatPercentage, formatCompactNumber } from '@/lib/utils';
+import { MetricCardSkeleton, Skeleton } from '@/components/ui/Skeleton';
 import { useMemo } from 'react';
 
 // ---------- Metric Card ----------
@@ -93,7 +94,7 @@ export function DashboardView() {
    */
   const chartData = useMemo(
     () =>
-      data?.costTrends.map((trend) => ({
+      data?.costTrends.map((trend: { date: string; cost: number; projected: number }) => ({
         ...trend,
         date: new Date(trend.date).toLocaleDateString('en-US', {
           month: 'short',
@@ -105,10 +106,20 @@ export function DashboardView() {
 
   if (loading && !data) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="space-y-3 text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-sm text-text-muted">{t('common.loading')}</p>
+      <div className="space-y-6 p-6">
+        <div>
+          <Skeleton width={200} height={32} />
+          <Skeleton width={300} height={20} className="mt-2" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MetricCardSkeleton />
+          <MetricCardSkeleton />
+          <MetricCardSkeleton />
+          <MetricCardSkeleton />
+        </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Skeleton className="h-[340px] lg:col-span-2 glass-card" />
+          <Skeleton className="h-[340px] glass-card" />
         </div>
       </div>
     );
@@ -266,7 +277,7 @@ export function DashboardView() {
                 dataKey="count"
                 nameKey="provider"
               >
-                {(data?.resourceDistribution ?? []).map((_, index) => (
+                {(data?.resourceDistribution ?? []).map((_: any, index: number) => (
                   <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
@@ -281,7 +292,7 @@ export function DashboardView() {
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-4 space-y-2">
-            {(data?.resourceDistribution ?? []).map((item, i) => (
+            {(data?.resourceDistribution ?? []).map((item: any, i: number) => (
               <div key={item.provider} className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div

@@ -12,6 +12,7 @@ import { useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSocketData } from '@/hooks/useSocketData';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/utils';
 import { formatPercentage } from '@/lib/utils';
 import type { SocketMessage } from '@/types';
@@ -298,7 +299,15 @@ export function LiveFeedView() {
 
           <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
             <AnimatePresence initial={false}>
-              {messageHistory.length === 0 ? (
+              {status === 'connecting' && messageHistory.length === 0 ? (
+                <div className="space-y-4 py-2">
+                  <Skeleton height={60} />
+                  <Skeleton height={60} />
+                  <Skeleton height={60} />
+                  <Skeleton height={60} />
+                  <Skeleton height={60} />
+                </div>
+              ) : messageHistory.length === 0 ? (
                 <p className="py-12 text-center text-sm text-text-muted">
                   {t('liveFeed.noEvents')}
                 </p>
