@@ -3,7 +3,7 @@ import { createClerkClient, verifyToken } from '@clerk/backend';
 import { prisma } from './db';
 
 const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY,
+  secretKey: process.env.CLERK_SECRET_KEY, // This might be missing
   publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY
 });
 
@@ -17,9 +17,18 @@ export const requireAuthRole = (allowedRoles: string[]) => {
       }
 
       const token = authHeader.split(' ')[1];
-      const verified = await verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY || '' // Clerk expects string
-      });
+      
+      let verified;
+      try {
+        verified = await verifyToken(token, {
+          secretKey: process.env.CLERK_SECRET_KEY, // Will fallback to JWKS if undefined
+          jwtKey: process.env.CLERK_JWT_KEY, // Optional, typically provided in dashboard 
+        });
+      } catch (verifyErr: any) {
+        console.warn('Token verification failed:', verifyErr?.message || verifyErr);
+        res.status(401).json({ error: 'Invalid or expired authentication token.' });
+        return null;
+      }
 
       const userId = verified.sub;
       if (!userId) {
@@ -45,9 +54,10 @@ export const requireAuthRole = (allowedRoles: string[]) => {
       }
 
       return user; // Passes RBAC check, returns the DB user
-    } catch(err) {
-      console.error(err);
-      res.status(500).json({ error: 'Internal RBAC error' });
+    } catch(err: any) {
+      console.error('RBAC Middleware Error:', err?.message || err);
+      // Failsafe 500 error, mostly triggers if database crashes internally
+      res.status(500).json({ error: 'Internal system error processing RBAC authorization' });
       return null;
     }
   };
