@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createClerkClient } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import { prisma } from './db';
 
 const clerkClient = createClerkClient({
@@ -17,8 +17,8 @@ export const requireAuthRole = (allowedRoles: string[]) => {
       }
 
       const token = authHeader.split(' ')[1];
-      const verified = await clerkClient.verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY
+      const verified = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY || '' // Clerk expects string
       });
 
       const userId = verified.sub;
@@ -34,7 +34,7 @@ export const requireAuthRole = (allowedRoles: string[]) => {
              clerkId: userId,
              email: userId + '@fallback.io',
              role: 'USER',
-             status: 'ACTIVE',
+             status: 'PENDING',
            }
          });
       }

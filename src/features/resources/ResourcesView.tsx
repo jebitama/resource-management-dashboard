@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
 import { useInfiniteResources, useInfiniteScrollTrigger } from '@/features/resources/hooks/useInfiniteResources';
 import { useAppStore } from '@/store/appStore';
+import { useRBAC } from '@/hooks/useRBAC';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { TableRowSkeleton } from '@/components/ui/Skeleton';
@@ -257,6 +258,7 @@ export function ResourcesView() {
   const filters = useAppStore((s) => s.filters);
   const sort = useAppStore((s) => s.sort);
   const setSort = useAppStore((s) => s.setSort);
+  const { isApproved } = useRBAC();
 
   const { data: _oldData, mutate: updateStatus } = useUpdateResourceStatus();
 
@@ -377,7 +379,9 @@ export function ResourcesView() {
         <Button
           variant="primary"
           size="sm"
+          disabled={!isApproved}
           onClick={() => setIsCreateModalOpen(true)}
+          title={!isApproved ? "Waiting for admin approval to create resources" : undefined}
           leftIcon={
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

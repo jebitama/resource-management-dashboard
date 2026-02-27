@@ -36,6 +36,7 @@ export function useRBAC() {
     isLoading: isLoading || !isLoaded,
     hasElevatedAccess: dbUser?.role === 'ADMIN' || dbUser?.role === 'SUPERADMIN',
     isSuperAdmin: dbUser?.role === 'SUPERADMIN',
+    isApproved: dbUser?.status === 'ACTIVE',
     dbUser,
     refetchUser: refetch,
     getToken

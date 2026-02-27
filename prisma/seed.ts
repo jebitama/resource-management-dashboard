@@ -56,6 +56,21 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.teamMember.deleteMany();
   await prisma.resource.deleteMany();
+  await prisma.user.deleteMany();
+
+  // -- Create Admin User --
+  console.log('👑 Creating default Admin user...');
+  await prisma.user.create({
+    data: {
+      clerkId: 'seed_admin_clerk_id',
+      email: 'admin@enterprise.io',
+      firstName: 'System',
+      lastName: 'Admin',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('  ✅ Created default Admin user (admin@enterprise.io)');
 
   // -- Create Resources --
   console.log('📦 Creating resources...');
@@ -173,6 +188,7 @@ async function main() {
 
   // -- Summary --
   const counts = {
+    users: await prisma.user.count(),
     resources: await prisma.resource.count(),
     teamMembers: await prisma.teamMember.count(),
     projects: await prisma.project.count(),
@@ -181,6 +197,7 @@ async function main() {
   };
 
   console.log('\n🎉 Seed complete!');
+  console.log(`   Users:        ${counts.users}`);
   console.log(`   Resources:    ${counts.resources}`);
   console.log(`   Team Members: ${counts.teamMembers}`);
   console.log(`   Projects:     ${counts.projects}`);
