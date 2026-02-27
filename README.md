@@ -28,7 +28,7 @@ This project follows a strict **feature-based architecture** combined with a **V
 │   ├── admin/              # Elevated privilege endpoints
 │   ├── jobs/               # QStash background job triggers
 │   └── webhooks/           # Clerk & QStash signature-verified webhooks
-├── prisma/                 # SQLite Database Schema & Config
+├── prisma/                 # PostgreSQL Database Schema & Config
 ├── public/                 # Static Assets (robots.txt, etc)
 └── src/                    # React Frontend
     ├── app/                # App shell, theme providers
@@ -89,7 +89,7 @@ Production builds are heavily locked down for private intranets:
 |---|---|---|
 | **Framework** | Vercel (Next-Gen) + Vite (React) | Combined Edge execution APIs seamlessly backing a high-speed Vite client. |
 | **Styling** | Tailwind CSS 4 | Utility-first with precise Glassmorphism / Semantic CSS variables. |
-| **Database** | Prisma (SQLite) | Type-safe deterministic querying mapped manually against Auth configurations. |
+| **Database** | Prisma (PostgreSQL) | Type-safe deterministic querying mapped manually against Auth configurations. |
 | **State Layer** | Zustand + Immer | Lightweight, boilerplate-free immutable stores. |
 | **Data Fetching** | TanStack Query + Apollo Client | Dual orchestration handling Infinite-Scroll DOM endpoints and dynamic nested mappings. |
 | **Identity** | Clerk | Best-in-class multi-tenant user authentication and session management. |
@@ -118,7 +118,7 @@ Duplicate the sample environment variables mapping your respective API keys:
 cp .env.example .env
 ```
 
-Hydrate the SQLite DB and trigger initial Prisma generation:
+Hydrate the PostgreSQL DB and trigger initial Prisma generation:
 ```bash
 npx prisma generate
 npx prisma db push
