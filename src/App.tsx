@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+/**
+ * ==========================================================================
+ * Application Shell
+ * ==========================================================================
+ * Root component that composes the layout: Sidebar + Header + Main Content.
+ * Uses AnimatePresence for smooth transitions between dashboard views.
+ * Manages the active view state at the top level.
+ * ==========================================================================
+ */
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useState, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { Sidebar, type ViewId } from '@/components/ui/Sidebar';
+import { Header } from '@/components/ui/Header';
+import { DashboardView } from '@/features/dashboard/DashboardView';
+import { ResourcesView } from '@/features/resources/ResourcesView';
+import { LiveFeedView } from '@/features/live-feed/LiveFeedView';
+
+export default function App() {
+  const [currentView, setCurrentView] = useState<ViewId>('dashboard');
+
+  /**
+   * useCallback: Prevents creating a new navigate function on every render,
+   * which would cause the memoized Sidebar to re-render unnecessarily.
+   */
+  const handleNavigate = useCallback((view: ViewId) => {
+    setCurrentView(view);
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="flex h-screen overflow-hidden bg-bg-main">
+      {/* Sidebar Navigation */}
+      <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
-export default App
+      {/* Main Content Area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Header />
+
+        <main className="flex-1 overflow-y-auto">
+          <AnimatePresence mode="wait">
+            {currentView === 'dashboard' && (
+              <DashboardView key="dashboard" />
+            )}
+            {currentView === 'resources' && (
+              <ResourcesView key="resources" />
+            )}
+            {currentView === 'live-feed' && (
+              <LiveFeedView key="live-feed" />
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
+    </div>
+  );
+}
