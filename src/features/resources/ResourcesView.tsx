@@ -14,14 +14,14 @@
  */
 
 import { memo, useMemo, useCallback, useState } from 'react';
-// @ts-expect-error — @types/react-window lags behind react-window v2 exports
-import { FixedSizeList as List } from 'react-window';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useResources, useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
+import { useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
+import { useInfiniteResources, useInfiniteScrollTrigger } from '@/features/resources/hooks/useInfiniteResources';
 import { useAppStore } from '@/store/appStore';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
+import { TableRowSkeleton } from '@/components/ui/Skeleton';
 import { CreateResourceModal } from '@/features/resources/components/CreateResourceModal';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatPercentage, formatRelativeTime } from '@/lib/utils';
@@ -30,18 +30,14 @@ import { ResourceStatus, Department } from '@/types';
 
 // ---------- Constants ----------
 
-const ROW_HEIGHT = 52;
 const HEADER_HEIGHT = 48;
 
 // ---------- Row Component ----------
 
 interface RowProps {
+  resource: Resource;
   index: number;
-  style: React.CSSProperties;
-  data: {
-    items: Resource[];
-    onStatusChange: (id: string, status: ResourceStatusType) => void;
-  };
+  onStatusChange: (id: string, status: ResourceStatusType) => void;
 }
 
 /**
@@ -49,10 +45,7 @@ interface RowProps {
  * rows update. With 10,000+ rows (even virtualized), preventing re-renders
  * of visible rows (~20-30 at a time) during parent state changes is critical.
  */
-const TableRow = memo(function TableRow({ index, style, data }: RowProps) {
-  const { items, onStatusChange } = data;
-  const resource = items[index];
-
+const TableRow = memo(function TableRow({ resource, index, onStatusChange }: RowProps) {
   if (!resource) return null;
 
   const cpuColor =
@@ -71,9 +64,8 @@ const TableRow = memo(function TableRow({ index, style, data }: RowProps) {
 
   return (
     <div
-      style={style}
       className={cn(
-        'flex items-center border-b border-border/50 px-4 text-xs',
+        'flex items-center border-b border-border/50 px-4 text-xs h-[52px]',
         'hover:bg-bg-muted/50 transition-colors',
         index % 2 === 0 ? 'bg-transparent' : 'bg-bg-muted/20'
       )}
@@ -266,14 +258,27 @@ export function ResourcesView() {
   const sort = useAppStore((s) => s.sort);
   const setSort = useAppStore((s) => s.setSort);
 
-  const { data: resources, isLoading, error, refetch } = useResources(filters);
-  const { mutate: updateStatus } = useUpdateResourceStatus();
+  const { data: _oldData, mutate: updateStatus } = useUpdateResourceStatus();
+
+  // Replace old useResources with the useInfiniteResources hook implementation
+  const {
+    resources,
+    isLoading,
+    error,
+    refetch,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteResources();
+
+  const loadMoreRef = useInfiniteScrollTrigger({
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  });
 
   // Modal state for Create Resource form
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  // State for container dimensions
-  const [containerHeight, setContainerHeight] = useState(600);
 
   /**
    * useCallback: Maintains referential equality for the status change handler.
@@ -295,7 +300,25 @@ export function ResourcesView() {
   const sortedData = useMemo(() => {
     if (!resources) return [];
 
-    return [...resources].sort((a, b) => {
+    // 1. Client-side Filtering
+    let filtered = [...resources];
+    
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      filtered = filtered.filter((r) => r.name.toLowerCase().includes(q));
+    }
+    if (filters.status !== 'ALL') {
+      filtered = filtered.filter((r) => r.status === filters.status);
+    }
+    if (filters.department !== 'ALL') {
+      filtered = filtered.filter((r) => r.department === filters.department);
+    }
+    if (filters.provider !== 'ALL') {
+      filtered = filtered.filter((r) => r.provider === filters.provider);
+    }
+
+    // 2. Client-side Sorting
+    return filtered.sort((a, b) => {
       const key = sort.key as keyof Resource;
       const aVal = a[key];
       const bVal = b[key];
@@ -312,7 +335,7 @@ export function ResourcesView() {
 
       return 0;
     });
-  }, [resources, sort]);
+  }, [resources, sort, filters]);
 
   const handleSort = useCallback(
     (key: string) => {
@@ -322,32 +345,6 @@ export function ResourcesView() {
       });
     },
     [sort, setSort]
-  );
-
-  // Measure container ref callback
-  const containerRef = useCallback((node: HTMLDivElement | null) => {
-    if (node) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
-        if (entry) {
-          setContainerHeight(entry.contentRect.height - HEADER_HEIGHT);
-        }
-      });
-      resizeObserver.observe(node);
-    }
-  }, []);
-
-  /**
-   * useMemo: Wrapping the itemData object to prevent creating a new object
-   * reference every render. react-window uses this reference to determine
-   * if rows need re-rendering.
-   */
-  const itemData = useMemo(
-    () => ({
-      items: sortedData,
-      onStatusChange: handleStatusChange,
-    }),
-    [sortedData, handleStatusChange]
   );
 
   // Column headers config for sort UI
@@ -402,12 +399,17 @@ export function ResourcesView() {
       </div>
 
       {/* Table */}
-      <div ref={containerRef} className="glass-card flex-1 overflow-hidden">
+      <div className="glass-card flex-1 overflow-hidden">
         {isLoading && !resources ? (
-          <div className="flex h-64 items-center justify-center">
-            <div className="space-y-3 text-center">
-              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-              <p className="text-sm text-text-muted">{t('common.loading')}</p>
+          <div className="flex flex-col h-full">
+            <div
+              className="flex items-center border-b border-border bg-bg-muted/50 px-4"
+              style={{ height: HEADER_HEIGHT }}
+            />
+            <div className="flex-1 overflow-hidden">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <TableRowSkeleton key={i} />
+              ))}
             </div>
           </div>
         ) : error ? (
@@ -459,17 +461,34 @@ export function ResourcesView() {
               <div className="flex-1" />
             </div>
 
-            {/* Virtualized Rows */}
-            <List
-              height={Math.max(containerHeight, 400)}
-              width="100%"
-              itemCount={sortedData.length}
-              itemSize={ROW_HEIGHT}
-              itemData={itemData}
-              overscanCount={10}
-            >
-              {TableRow}
-            </List>
+            {/* Rows list with infinite scroll sentinel at the bottom */}
+            <div className="flex-1 overflow-auto">
+              {sortedData.map((resource, i) => (
+                <TableRow
+                  key={resource.id}
+                  index={i}
+                  resource={resource}
+                  onStatusChange={handleStatusChange}
+                />
+              ))}
+
+              {/* Intersection Observer Sentinel for Infinite Scroll */}
+              {hasNextPage && (
+                <div
+                  ref={loadMoreRef}
+                  className="p-4 flex justify-center items-center text-text-muted text-xs"
+                >
+                  {isFetchingNextPage ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      Loading more...
+                    </span>
+                  ) : (
+                    <span>Scroll for more</span>
+                  )}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>

@@ -7,7 +7,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ApolloProvider } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client/react';
 import { apolloClient } from '@/graphql/client';
 import { ThemeProvider } from '@/app/ThemeProvider';
 import App from '@/App';
@@ -48,3 +48,9 @@ createRoot(rootElement).render(
     </QueryClientProvider>
   </StrictMode>
 );
+
+// ---------- Performance Monitoring ----------
+// Reports Core Web Vitals (LCP, FCP, CLS, INP, TTFB)
+// In production, replace console.log with your analytics endpoint
+import { logWebVitals } from '@/lib/webVitals';
+logWebVitals();
