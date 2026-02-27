@@ -5,7 +5,7 @@ import { prisma } from '../../_utils/db';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-  if (!(await applyRateLimit(req, res))) return;
+  if (!(await applyRateLimit(req, res, 'readAccess'))) return;
 
   const user = await requireAuthRole(['ADMIN', 'SUPERADMIN'])(req, res);
   if (!user) return;
