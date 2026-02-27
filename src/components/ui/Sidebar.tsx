@@ -96,14 +96,18 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
       )}
     >
       {/* Logo / Brand */}
-      <div className="flex h-16 items-center justify-between border-b border-border px-4">
-        <AnimatePresence>
-          {!isCollapsed && (
+      <div className={cn(
+        "flex h-16 items-center border-b border-border overflow-hidden",
+        isCollapsed ? "justify-center" : "justify-between px-4"
+      )}>
+        <AnimatePresence mode="wait">
+          {!isCollapsed ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2 overflow-hidden"
+              key="expanded"
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: 'auto' }}
+              exit={{ opacity: 0, width: 0 }}
+              className="flex items-center gap-2"
             >
               <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
                 <span className="text-sm font-bold text-primary-foreground">R</span>
@@ -112,13 +116,18 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
                 ResManager
               </span>
             </motion.div>
+          ) : (
+            <motion.div
+              key="collapsed"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary"
+            >
+              <span className="text-sm font-bold text-primary-foreground">R</span>
+            </motion.div>
           )}
         </AnimatePresence>
-        {isCollapsed && (
-          <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">R</span>
-          </div>
-        )}
       </div>
 
       {/* Navigation */}
@@ -131,9 +140,9 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
               onClick={() => onNavigate(item.id)}
               aria-current={isActive ? 'page' : undefined}
               className={cn(
-                'relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5',
-                'text-sm font-medium transition-colors',
-                'hover:bg-bg-muted focus-visible:ring-2 focus-visible:ring-ring',
+                'relative flex w-full items-center rounded-lg py-2.5 transition-all',
+                isCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
+                'text-sm font-medium hover:bg-bg-muted focus-visible:ring-2 focus-visible:ring-ring',
                 isActive
                   ? 'text-primary'
                   : 'text-text-secondary hover:text-text-primary'
@@ -166,16 +175,18 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
 
       {/* Restricted User Actions */}
       {!hasElevatedAccess && (
-        <div className="p-4 border-t border-border">
+        <div className={cn("border-t border-border", isCollapsed ? "p-2" : "p-4")}>
            <button
              onClick={() => setIsAccessModalOpen(true)}
+             title={isCollapsed ? "Request Access" : undefined}
              className={cn(
-               'flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold',
-               'bg-bg-muted/50 text-text-primary hover:bg-bg-muted border border-border transition-all hover:border-primary/50'
+               'flex w-full items-center justify-center rounded-lg py-2 text-xs font-semibold',
+               'bg-bg-muted/50 text-text-primary hover:bg-bg-muted border border-border transition-all hover:border-primary/50',
+               !isCollapsed && 'gap-2'
              )}
            >
              {!isCollapsed && <span>Request Access</span>}
-             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+             <svg className={cn("flex-shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
              </svg>
            </button>
