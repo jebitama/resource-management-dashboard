@@ -1,0 +1,99 @@
+{
+  "app": {
+    "title": "Resource Management Dashboard",
+    "subtitle": "Enterprise Infrastructure Analytics"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "resources": "Resources",
+    "liveFeed": "Live Feed",
+    "projects": "Projects",
+    "team": "Team",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Dashboard Overview",
+    "totalResources": "Total Resources",
+    "activeResources": "Active Resources",
+    "avgCpu": "Avg. CPU Utilization",
+    "avgMemory": "Avg. Memory Usage",
+    "costPerHour": "Cost / Hour",
+    "monthlyCost": "Monthly Projected Cost",
+    "activeProjects": "Active Projects",
+    "teamCapacity": "Team Capacity",
+    "alerts": "Active Alerts",
+    "uptime": "System Uptime",
+    "resourceDistribution": "Resource Distribution",
+    "costTrends": "Cost Trends (30 Days)",
+    "recentAlerts": "Recent Alerts"
+  },
+  "resources": {
+    "title": "Resource Management",
+    "subtitle": "Monitor and manage all infrastructure resources",
+    "search": "Search resources...",
+    "filters": "Filters",
+    "status": "Status",
+    "department": "Department",
+    "provider": "Provider",
+    "resetFilters": "Reset Filters",
+    "noResults": "No resources found matching your criteria",
+    "totalRows": "{{count}} resources",
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "status": "Status",
+      "region": "Region",
+      "provider": "Provider",
+      "cpu": "CPU %",
+      "memory": "Memory %",
+      "cost": "Cost/hr",
+      "department": "Department",
+      "lastCheck": "Last Check",
+      "actions": "Actions"
+    }
+  },
+  "liveFeed": {
+    "title": "Live System Feed",
+    "subtitle": "Real-time infrastructure monitoring",
+    "systemHealth": "System Health",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "networkIn": "Network In",
+    "networkOut": "Network Out",
+    "connections": "Active Connections",
+    "errorRate": "Error Rate",
+    "eventLog": "Event Log",
+    "noEvents": "No events recorded yet"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light Mode",
+    "dark": "Dark Mode"
+  },
+  "language": {
+    "switch": "Switch language",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  },
+  "common": {
+    "all": "All",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View Details",
+    "active": "Active",
+    "inactive": "Inactive",
+    "close": "Close"
+  },
+  "status": {
+    "ACTIVE": "Active",
+    "IDLE": "Idle",
+    "OVERLOADED": "Overloaded",
+    "MAINTENANCE": "Maintenance",
+    "DECOMMISSIONED": "Decommissioned"
+  }
+}
