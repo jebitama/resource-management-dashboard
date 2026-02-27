@@ -10,8 +10,11 @@
 
 import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { Sidebar, type ViewId } from '@/components/ui/Sidebar';
 import { Header } from '@/components/ui/Header';
+import { SignInPage } from '@/features/auth/SignInPage';
+import { AdminDashboard } from '@/features/admin/AdminDashboard';
 import { DashboardView } from '@/features/dashboard/DashboardView';
 import { ResourcesView } from '@/features/resources/ResourcesView';
 import { LiveFeedView } from '@/features/live-feed/LiveFeedView';
@@ -28,28 +31,39 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-main">
-      {/* Sidebar Navigation */}
-      <Sidebar currentView={currentView} onNavigate={handleNavigate} />
+    <>
+      <SignedOut>
+        <SignInPage />
+      </SignedOut>
+      
+      <SignedIn>
+        <div className="flex h-screen overflow-hidden bg-bg-main">
+          {/* Sidebar Navigation */}
+          <Sidebar currentView={currentView} onNavigate={handleNavigate} />
 
-      {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
+          {/* Main Content Area */}
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <Header />
 
-        <main className="flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            {currentView === 'dashboard' && (
-              <DashboardView key="dashboard" />
-            )}
-            {currentView === 'resources' && (
-              <ResourcesView key="resources" />
-            )}
-            {currentView === 'live-feed' && (
-              <LiveFeedView key="live-feed" />
-            )}
-          </AnimatePresence>
-        </main>
-      </div>
-    </div>
+            <main className="flex-1 overflow-y-auto">
+              <AnimatePresence mode="wait">
+                {currentView === 'dashboard' && (
+                  <DashboardView key="dashboard" />
+                )}
+                {currentView === 'resources' && (
+                  <ResourcesView key="resources" />
+                )}
+                {currentView === 'live-feed' && (
+                  <LiveFeedView key="live-feed" />
+                )}
+                {currentView === 'admin' && (
+                  <AdminDashboard key="admin" />
+                )}
+              </AnimatePresence>
+            </main>
+          </div>
+        </div>
+      </SignedIn>
+    </>
   );
 }

@@ -8,15 +8,17 @@
  * ==========================================================================
  */
 
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
+import { useRBAC } from '@/hooks/useRBAC';
+import { RequestAccessModal } from '@/features/admin/components/RequestAccessModal';
 import { cn } from '@/lib/utils';
 
 // ---------- Types ----------
 
-export type ViewId = 'dashboard' | 'resources' | 'live-feed';
+export type ViewId = 'dashboard' | 'resources' | 'live-feed' | 'admin';
 
 interface SidebarProps {
   currentView: ViewId;
@@ -52,13 +54,22 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'live-feed',
-    labelKey: 'nav.liveFeed',
+    labelKey: 'nav.liveFeed', // We'll add this to translation or fallback
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
       </svg>
     ),
   },
+  {
+    id: 'admin',
+    labelKey: 'Admin Panel', 
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+      </svg>
+    ),
+  }
 ];
 
 // ---------- Component ----------
@@ -67,6 +78,13 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
   const { t } = useTranslation();
   const isCollapsed = useAppStore((s) => s.preferences.sidebarCollapsed);
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
+  const { hasElevatedAccess } = useRBAC();
+  const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => {
+    if (item.id === 'admin' && !hasElevatedAccess) return false;
+    return true;
+  });
 
   return (
     <motion.aside
@@ -105,7 +123,7 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2" role="navigation" aria-label="Main navigation">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive = item.id === currentView;
           return (
             <button
@@ -137,7 +155,7 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
                     exit={{ opacity: 0, width: 0 }}
                     className="relative z-10 overflow-hidden whitespace-nowrap"
                   >
-                    {t(item.labelKey)}
+                    {item.labelKey.includes('.') ? t(item.labelKey) : item.labelKey}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -146,8 +164,27 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
         })}
       </nav>
 
+      {/* Restricted User Actions */}
+      {!hasElevatedAccess && (
+        <div className="p-4 border-t border-border">
+           <button
+             onClick={() => setIsAccessModalOpen(true)}
+             className={cn(
+               'flex w-full items-center justify-center gap-2 rounded-lg py-2 text-xs font-semibold',
+               'bg-bg-muted/50 text-text-primary hover:bg-bg-muted border border-border transition-all hover:border-primary/50'
+             )}
+           >
+             {!isCollapsed && <span>Request Access</span>}
+             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+               <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+             </svg>
+           </button>
+        </div>
+      )}
+
       {/* Collapse Toggle */}
       <div className="border-t border-border p-2">
+        <RequestAccessModal isOpen={isAccessModalOpen} onClose={() => setIsAccessModalOpen(false)} />
         <button
           onClick={toggleSidebar}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

@@ -4,12 +4,16 @@
  * Uses backdrop-filter for glassmorphism effect.
  */
 
+import { UserButton, useUser } from '@clerk/clerk-react';
 import { SystemHealthTicker } from '@/components/ui/SystemHealthTicker';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { useRBAC } from '@/hooks/useRBAC';
 import { cn } from '@/lib/utils';
 
 export function Header() {
+  const { user } = useUser();
+  const { role } = useRBAC();
   return (
     <header
       className={cn(
@@ -29,22 +33,20 @@ export function Header() {
         <ThemeSwitcher />
         <div className="h-5 w-px bg-border" />
 
-        {/* User Avatar */}
-        <button
-          aria-label="User menu"
-          className={cn(
-            'flex items-center gap-2 rounded-lg px-2 py-1.5',
-            'hover:bg-bg-muted transition-colors',
-            'focus-visible:ring-2 focus-visible:ring-ring'
-          )}
-        >
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-            AD
+        {/* User Role Badge & Avatar */}
+        <div className="flex items-center gap-3">
+          <div className="hidden flex-col items-end md:flex">
+            <span className="text-sm font-semibold text-text-primary capitalize">{user?.firstName || 'User'}</span>
+            <span className={`text-[10px] uppercase font-bold tracking-wider rounded px-1.5 py-0.5 ${role === 'SUPERADMIN' ? 'bg-destructive/20 text-destructive' : role === 'ADMIN' ? 'bg-primary/20 text-primary' : 'bg-bg-muted text-text-muted'}`}>
+              {role}
+            </span>
           </div>
-          <span className="hidden text-sm font-medium text-text-primary md:inline">
-            Admin
-          </span>
-        </button>
+          <UserButton 
+            appearance={{
+              elements: { userButtonAvatarBox: 'h-8 w-8' }
+            }}
+          />
+        </div>
       </div>
     </header>
   );

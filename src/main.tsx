@@ -8,9 +8,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApolloProvider } from '@apollo/client/react';
+import { ClerkProvider } from '@clerk/clerk-react';
 import { apolloClient } from '@/graphql/client';
 import { ThemeProvider } from '@/app/ThemeProvider';
 import App from '@/App';
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_ZHVtbXktdG9rZW4uY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 // Import i18n config (side-effect: initializes i18next)
 import '@/i18n';
@@ -39,13 +42,15 @@ if (!rootElement) throw new Error('Root element not found');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ApolloProvider client={apolloClient}>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </ApolloProvider>
-    </QueryClientProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+      <QueryClientProvider client={queryClient}>
+        <ApolloProvider client={apolloClient}>
+          <ThemeProvider>
+            <App />
+          </ThemeProvider>
+        </ApolloProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
   </StrictMode>
 );
 
