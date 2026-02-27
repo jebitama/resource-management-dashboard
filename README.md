@@ -1,171 +1,110 @@
-# Resource Management Dashboard
+# Real-Time Resource Management Dashboard
 
 <div align="center">
 
-**Enterprise-Grade Real-Time Infrastructure Analytics**
+**Enterprise-Grade Infrastructure Analytics & Role-Based Access Platform**
 
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
-[![Vitest](https://img.shields.io/badge/Vitest-3.x-6E9F18?style=flat-square&logo=vitest)](https://vitest.dev)
-[![Prisma](https://img.shields.io/badge/Prisma-6.x-2D3748?style=flat-square&logo=prisma)](https://prisma.io)
+[![Vercel Serverless](https://img.shields.io/badge/Vercel-Serverless-000000?style=flat-square&logo=vercel)](https://vercel.com)
+[![Upstash](https://img.shields.io/badge/Upstash-Redis/QStash-00E9A3?style=flat-square&logo=upstash)](https://upstash.com)
+[![Clerk](https://img.shields.io/badge/Clerk-Authentication-6C47FF?style=flat-square&logo=clerk)](https://clerk.com)
 
-*A production-ready dashboard demonstrating senior-level React architecture, real-time data handling, and enterprise UX patterns. Built as a technical showcase for private enterprise environments.*
+*A production-ready platform demonstrating senior-level React architecture, serverless backend integrations, Role-Based Access Control (RBAC), Upstash rate-limiting, and deep enterprise UX patterns.*
 
 </div>
 
 ---
 
-## 🏗 Architecture Overview
+## 🏗 Full-Stack Architecture
 
-This project follows a **feature-based architecture** with clear separation of concerns, designed for team scalability and maintainability in large codebases.
+This project follows a strict **feature-based architecture** combined with a **Vercel Serverless Edge API**, designed for maximum scalability in high-performance enterprise workloads.
 
-```
-src/
-├── app/                    # Application shell, providers, context
-│   └── ThemeProvider.tsx    # React Context + Zustand theme sync
-├── components/ui/          # Reusable design system primitives
-│   ├── Button.tsx           # Variant-based button (primary, ghost, outline...)
-│   ├── Card.tsx             # Composable card (Header, Content, Footer)
-│   ├── Input.tsx            # Form input with error states & addons
-│   ├── Badge.tsx            # Color-coded label component
-│   ├── Skeleton.tsx         # Loading state skeletons with presets
-│   ├── EmptyState.tsx       # Empty/no-results feedback component
-│   ├── StatusBadge.tsx      # Resource status indicator (memoized)
-│   ├── ThemeSwitcher.tsx    # Animated dark/light toggle
-│   ├── LanguageSwitcher.tsx # i18n dropdown selector
-│   ├── SystemHealthTicker.tsx # Real-time header metrics
-│   ├── Sidebar.tsx          # Collapsible navigation
-│   ├── Header.tsx           # Glassmorphism top bar
-│   └── index.ts             # Barrel exports
-├── features/               # Feature modules (domain-driven)
-│   ├── dashboard/           # GraphQL analytics view
-│   ├── resources/           # Virtualized data table (10K+ rows)
-│   └── live-feed/           # WebSocket real-time event log
-├── graphql/                 # Apollo Client, queries, mocks
-├── hooks/                   # Shared custom hooks
-│   └── useSocketData.ts     # WebSocket simulation (typed)
-├── i18n/                    # Internationalization config + locales
-├── lib/                     # Pure utilities (cn, formatters, mock data)
-├── store/                   # Zustand state management
-├── types/                   # Global TypeScript interfaces
-└── __tests__/               # Vitest unit tests
+```text
+/
+├── api/                    # Vercel Serverless Functions (Backend)
+│   ├── _utils/             # Shared serverless utilities (db, ratelimit, auth)
+│   ├── admin/              # Elevated privilege endpoints
+│   ├── jobs/               # QStash background job triggers
+│   └── webhooks/           # Clerk & QStash signature-verified webhooks
+├── prisma/                 # SQLite Database Schema & Config
+├── public/                 # Static Assets (robots.txt, etc)
+└── src/                    # React Frontend
+    ├── app/                # App shell, theme providers
+    ├── components/ui/      # Reusable design system primitives (Skeletons, Badges)
+    ├── features/           # Domain-driven feature modules
+    │   ├── admin/          # RBAC requests & user management directory
+    │   ├── auth/           # Custom Clerk identity flows
+    │   ├── dashboard/      # Main infrastructure metrics view
+    │   ├── live-feed/      # Real-time WebSocket event log
+    │   └── resources/      # Infinite-scroll virtualized data management
+    ├── graphql/            # Apollo Client integrations
+    ├── hooks/              # Shared Custom Hooks (useRBAC, useSocketData...)
+    └── store/              # Zustand state management
 ```
 
 ## ⚡ Technical Highlights
 
-### State Management — Zustand + Immer
+### 1. Identity & Role-Based Access Control (RBAC)
+- **Clerk Identity Hub:** Highly-customized Google & Email Auth using `@clerk/clerk-react`.
+- **Zero-Trust Default:** A Vercel Serverless Webhook securely intercepts `user.created` Svix events and provisions a strictly-bound `USER` directly into the Prisma Database.
+- **Admin Elevation Workflow:** Restricted users can submit Justification Petitions. `ADMIN`/`SUPERADMIN` users unlock the exclusive **Admin Console** where they can audit requests, escalate permissions, and modify backend database roles interactively.
 
-The store uses **Zustand** with **Immer middleware** for clean immutable updates. User preferences (theme, locale, sidebar state) are persisted to `localStorage` via Zustand's `persist` middleware, while transient state (filters, pagination) resets on page reload.
+### 2. Upstash Redis Rate Limiting
+The Vercel API is strictly protected against aggressive polling by **Upstash Sliding Window limiters**.
+- Configurations are decoupled (e.g., `readAccess: 20/min`, `authAccess: 5/min`) preventing serverless cost spikes.
+- Vercel effectively caches instantiated Upstash clients natively during cold boots for low-latency throughput.
+- Enforced HTTP Headers (`X-RateLimit-*`) are attached to all API responses automatically.
 
-```typescript
-// Immer allows "mutative" syntax that produces immutable updates
-setSearchFilter: (search) =>
-  set((state) => {
-    state.filters.search = search;
-    state.pagination.page = 1; // Reset on filter change
-  }),
-```
+### 3. Asynchronous Job Queues via Upstash QStash
+Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's standard 10s maximum execution limits:
+1. An admin triggers the background queue via `/api/jobs/trigger-report`.
+2. The payload is offloaded over HTTP directly to Upstash QStash.
+3. QStash orchestrates retries and executes the `/api/webhooks/qstash-report` endpoint. 
+4. **Edge Security:** The webhook strictly verifies the raw NodeJS stream against the HMAC signatures (`QSTASH_CURRENT_SIGNING_KEY`) blocking unauthorized local invocations.
 
-### Data Fetching — TanStack Query with Optimistic Updates
-
-Resource mutations use **optimistic updates** — the UI updates instantly while the server processes the request. If the mutation fails, the cache rolls back automatically:
-
-```typescript
-onMutate: async (variables) => {
-  await queryClient.cancelQueries({ queryKey: resourceKeys.all });
-  const previous = queryClient.getQueriesData({ queryKey: resourceKeys.lists() });
-  // Optimistically update cache
-  queryClient.setQueriesData(...);
-  return { previous }; // Snapshot for rollback
-},
-onError: (_err, _vars, context) => {
-  context?.previous.forEach(([key, data]) => queryClient.setQueryData(key, data));
-},
-```
-
-### GraphQL — Apollo Client with Normalized Caching
-
-Apollo's `InMemoryCache` uses **type policies** for entity normalization and paginated query merging:
-
-- `Resource`, `TeamMember`, `Project` identified by `id` field
-- Relay-style cursor pagination with `merge` functions
-- Custom mock link simulating realistic network latency (200–500ms)
-
-### Performance — Virtualization & Memoization
-
+### 4. High-Performance Front-End Data Handling
 | Technique | Where | Why |
 |---|---|---|
-| `react-window` (FixedSizeList) | Resource Table | Renders only visible rows from 10,000+ items |
-| `React.memo` | TableRow, MetricPill, StatusBadge | Prevents re-renders of sibling rows during updates |
-| `useMemo` | Sorted/filtered data, chart data | Avoids re-sorting 10K items on unrelated re-renders |
-| `useCallback` | Event handlers passed to children | Maintains referential equality for memoized children |
+| **`useInfiniteQuery`** | Main Datagrid | Replaced standard pagination with `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
+| **Optimistic Updates** | Status Toggling | UI patches local Apollo/Tanstack caches instantly before server acknowledgment. Automatic rollback on backend failure. |
+| **`useMemo` / `React.memo`** | Table Rows | Stops sibling rows from entirely re-rendering when modifying independent `useState` variables in the parent map. |
 
-Every usage includes inline **comments explaining the rationale** — not just what, but *why*.
+### 5. Skeleton Loaders & UX Architecture
+- **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>` and `<TableRowSkeleton>` shapes enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
+- **Zustand Persistence:** `localStorage` naturally ties Sidebar Collapses, Themes, and Locale Preferences seamlessly across sessions via Immer modifiers.
+- **i18n Readiness:** Complete Internationalization config mapped to React-i18next standard dictionaries.
 
-### WebSocket Simulation — Typed Real-Time Stream
-
-The `useSocketData` hook simulates a WebSocket with:
-- **Discriminated union** message types (`SYSTEM_HEALTH | MARKET_TICKER | ALERT | RESOURCE_UPDATE`)
-- Connection state machine (`connecting → connected → disconnected`)
-- Bounded message history to prevent memory leaks
-- Cleanup on unmount via `useRef` + `useEffect`
-
-### TypeScript — Strict & Exhaustive
-
-- Zero `any` types
-- **Discriminated unions** for WebSocket messages enable exhaustive `switch` matching
-- `as const` assertions for enum-like objects with derived types
-- Generic table column definitions
-- All GraphQL queries fully typed
-
-### Prisma — Database Modeling
-
-Full relational schema with `Resource`, `TeamMember`, `Project`, `Allocation`, and `AuditLog` models:
-
-- Proper indexes for query performance
-- Cascading deletes on relations
-- Seed script generating 50+ resources, 24 team members, 12 projects
-- Shows real fullstack capability beyond frontend
-
-### UX Polish
-
-- **Framer Motion**: `AnimatePresence` page transitions, `layoutId` shared-layout animations on metric cards, spring-based sidebar collapse
-- **Dark/Light theme** with `localStorage` persistence and CSS custom properties
-- **i18n**: English + Bahasa Indonesia with instant language switching
-- **WCAG AA** contrast ratios on all theme colors
-- **Keyboard accessibility**: All interactive elements have `aria-labels`, `focus-visible` rings, and keyboard navigation
-- **`cn()` utility**: `clsx` + `tailwind-merge` for clean, conflict-free class composition
+### 6. Security Configurations
+Production builds are heavily locked down for private intranets:
+- **`robots.txt` Disallow All:** Prevent rogue Web Crawlers from scraping Vercel Deploy domains.
+- **Zero `any` Typings:** Exhaustive discriminated unions validate Socket connections enforcing complete TypeScript rigidness.
 
 ---
 
 ## 🧰 Tech Stack
 
-| Layer | Technology | Rationale |
+| Domain | Technology | Rationale |
 |---|---|---|
-| **Framework** | React 18 + Vite | Fast HMR, modern bundling, React concurrent features |
-| **Language** | TypeScript (strict) | Type safety, IDE intelligence, self-documenting code |
-| **Styling** | Tailwind CSS 4 | Utility-first with semantic CSS variable theming |
-| **State** | Zustand + Immer | Lightweight, boilerplate-free, immutable updates |
-| **Server State** | TanStack Query | Caching, pagination, optimistic updates, retry |
-| **GraphQL** | Apollo Client | Normalized caching, type policies, dev tools |
-| **Animation** | Framer Motion | Layout animations, presence transitions, spring physics |
-| **Virtualization** | react-window | Render only visible rows from massive datasets |
-| **i18n** | react-i18next | Industry-standard, lazy-loadable, pluralization |
-| **Database** | Prisma + SQLite | Type-safe ORM, migrations, seed scripts |
-| **Charts** | Recharts | Declarative, responsive, composable with React |
-| **Testing** | Vitest + Testing Library | Vite-native, fast, compatible with Jest ecosystem |
+| **Framework** | Vercel (Next-Gen) + Vite (React) | Combined Edge execution APIs seamlessly backing a high-speed Vite client. |
+| **Styling** | Tailwind CSS 4 | Utility-first with precise Glassmorphism / Semantic CSS variables. |
+| **Database** | Prisma (SQLite) | Type-safe deterministic querying mapped manually against Auth configurations. |
+| **State Layer** | Zustand + Immer | Lightweight, boilerplate-free immutable stores. |
+| **Data Fetching** | TanStack Query + Apollo Client | Dual orchestration handling Infinite-Scroll DOM endpoints and dynamic nested mappings. |
+| **Identity** | Clerk | Best-in-class multi-tenant user authentication and session management. |
+| **Serverless Infra** | Upstash (Redis / QStash) | Serverless data stores for rapid polling checks, queue execution, and rate limiting. |
+| **Testing** | Vitest | Industry-standard unit and E2E smoke tests natively integrated into Vite plugins. |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- npm 9+
+- [Vercel CLI](https://vercel.com/docs/cli) (`npm i -g vercel`)
 
-### Installation
+### 1. Installation
 
 ```bash
 git clone <repo-url>
@@ -173,57 +112,39 @@ cd resource-management-dashboard
 npm install
 ```
 
-### Database Setup (Optional)
+### 2. Database & Environment Setup
+Duplicate the sample environment variables mapping your respective API keys:
+```bash
+cp .env.example .env
+```
 
+Hydrate the SQLite DB and trigger initial Prisma generation:
 ```bash
 npx prisma generate
 npx prisma db push
-npx prisma db seed
 ```
 
-### Development
+### 3. Development
+Instead of Vite's standard server, this application heavily relies on Vercel's Edge simulation for backend routes:
 
 ```bash
 npm run dev
+# This invokes: vercel dev --listen 3000
 ```
+Open [http://localhost:3000](http://localhost:3000) inside your web browser.
 
-Open [http://localhost:3000](http://localhost:3000)
-
-### Testing
+### 4. Testing & Verification
 
 ```bash
-# Run tests
+# Run 50+ vitest/e2e pipeline checks
 npm test
 
-# Run with coverage
-npm run test:coverage
-
-# Watch mode
-npm run test:watch
+# Production build test
+npm run build
 ```
-
----
-
-## 📊 Scalability Considerations
-
-1. **Feature Isolation**: Each feature module is self-contained with its own hooks, components, and data layer. New features can be added without modifying existing code.
-
-2. **Lazy Loading Ready**: Feature views can be wrapped with `React.lazy()` + `Suspense` for code-splitting in production.
-
-3. **Pagination Architecture**: GraphQL queries use cursor-based pagination (Relay spec) with Apollo cache merging — scales to millions of records.
-
-4. **Virtual Rendering**: The data table renders 20–30 DOM nodes regardless of dataset size (10K, 100K, or 1M rows).
-
-5. **State Normalization**: Apollo's normalized cache ensures entity updates propagate to all views without manual synchronization.
-
----
-
-## 📝 License
-
-This project serves as a **technical demonstration** of senior-level frontend and fullstack capabilities in private enterprise environments.
 
 ---
 
 <div align="center">
-  <sub>Built with precision by a Senior React/TypeScript Engineer</sub>
+  <sub>Engineered meticulously by a Senior React/Cloud Engineer</sub>
 </div>
