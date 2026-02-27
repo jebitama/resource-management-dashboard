@@ -1,0 +1,99 @@
+{
+  "app": {
+    "title": "Dasbor Manajemen Sumber Daya",
+    "subtitle": "Analitik Infrastruktur Enterprise"
+  },
+  "nav": {
+    "dashboard": "Dasbor",
+    "resources": "Sumber Daya",
+    "liveFeed": "Umpan Langsung",
+    "projects": "Proyek",
+    "team": "Tim",
+    "settings": "Pengaturan"
+  },
+  "dashboard": {
+    "title": "Ringkasan Dasbor",
+    "totalResources": "Total Sumber Daya",
+    "activeResources": "Sumber Daya Aktif",
+    "avgCpu": "Rata-rata Penggunaan CPU",
+    "avgMemory": "Rata-rata Penggunaan Memori",
+    "costPerHour": "Biaya / Jam",
+    "monthlyCost": "Proyeksi Biaya Bulanan",
+    "activeProjects": "Proyek Aktif",
+    "teamCapacity": "Kapasitas Tim",
+    "alerts": "Peringatan Aktif",
+    "uptime": "Waktu Aktif Sistem",
+    "resourceDistribution": "Distribusi Sumber Daya",
+    "costTrends": "Tren Biaya (30 Hari)",
+    "recentAlerts": "Peringatan Terbaru"
+  },
+  "resources": {
+    "title": "Manajemen Sumber Daya",
+    "subtitle": "Pantau dan kelola semua sumber daya infrastruktur",
+    "search": "Cari sumber daya...",
+    "filters": "Filter",
+    "status": "Status",
+    "department": "Departemen",
+    "provider": "Penyedia",
+    "resetFilters": "Reset Filter",
+    "noResults": "Tidak ada sumber daya yang sesuai dengan kriteria Anda",
+    "totalRows": "{{count}} sumber daya",
+    "columns": {
+      "name": "Nama",
+      "type": "Tipe",
+      "status": "Status",
+      "region": "Wilayah",
+      "provider": "Penyedia",
+      "cpu": "CPU %",
+      "memory": "Memori %",
+      "cost": "Biaya/jam",
+      "department": "Departemen",
+      "lastCheck": "Pemeriksaan Terakhir",
+      "actions": "Aksi"
+    }
+  },
+  "liveFeed": {
+    "title": "Umpan Sistem Langsung",
+    "subtitle": "Pemantauan infrastruktur secara real-time",
+    "systemHealth": "Kesehatan Sistem",
+    "cpu": "CPU",
+    "memory": "Memori",
+    "networkIn": "Jaringan Masuk",
+    "networkOut": "Jaringan Keluar",
+    "connections": "Koneksi Aktif",
+    "errorRate": "Tingkat Error",
+    "eventLog": "Log Peristiwa",
+    "noEvents": "Belum ada peristiwa tercatat"
+  },
+  "theme": {
+    "toggle": "Ganti tema",
+    "light": "Mode Terang",
+    "dark": "Mode Gelap"
+  },
+  "language": {
+    "switch": "Ganti bahasa",
+    "en": "English",
+    "id": "Bahasa Indonesia"
+  },
+  "common": {
+    "all": "Semua",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "retry": "Coba Lagi",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "view": "Lihat Detail",
+    "active": "Aktif",
+    "inactive": "Tidak Aktif",
+    "close": "Tutup"
+  },
+  "status": {
+    "ACTIVE": "Aktif",
+    "IDLE": "Menganggur",
+    "OVERLOADED": "Kelebihan Beban",
+    "MAINTENANCE": "Pemeliharaan",
+    "DECOMMISSIONED": "Dinonaktifkan"
+  }
+}
