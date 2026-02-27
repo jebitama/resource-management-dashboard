@@ -19,6 +19,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------- Authentication & RBAC ----------
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  role      String   @default("USER") // USER | ADMIN | SUPERADMIN
+  status    String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  requests  AccessRequest[]
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model AccessRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resource  String
+  reason    String?
+  status    String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("access_requests")
+}
+
 // ---------- Core Entities ----------
 
 model Resource {
