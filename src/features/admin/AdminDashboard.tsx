@@ -129,7 +129,7 @@ export function AdminDashboard() {
         <Button 
           variant="secondary" 
           onClick={() => triggerQStashMutation.mutate()}
-          className="border-primary text-primary hover:bg-primary/10"
+          className="border-primary text-black hover:text-primary hover:bg-primary/10"
           isLoading={triggerQStashMutation.isPending}
         >
           Trigger QStash SLA Report

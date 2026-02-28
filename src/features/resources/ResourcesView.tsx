@@ -15,10 +15,7 @@
 
 import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// @ts-ignore
-import * as reactWindowImport from 'react-window';
-const reactWindow = reactWindowImport as any;
-const List = reactWindow.FixedSizeList || reactWindow.default?.FixedSizeList;
+import { List } from 'react-window';
 import { useTranslation } from 'react-i18next';
 import { useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
 import { useInfiniteResources, useInfiniteScrollTrigger } from '@/features/resources/hooks/useInfiniteResources';
@@ -53,8 +50,8 @@ interface RowProps {
  * rows update. With 10,000+ rows (even virtualized), preventing re-renders
  * of visible rows (~20-30 at a time) during parent state changes is critical.
  */
-const TableRow = memo(function TableRow({ index, style, data }: RowProps) {
-  const resource = data.resources[index];
+const TableRow = memo(function TableRow({ index, style, data }: any) {
+  const resource = data?.resources[index];
   if (!resource) return null;
 
   const cpuColor =
@@ -296,7 +293,9 @@ export function ResourcesView() {
     if (!containerRef.current) return;
     
     const measure = () => {
-      const height = containerRef.current?.getBoundingClientRect().height;
+      const rect = containerRef.current?.getBoundingClientRect();
+      const height = rect?.height;
+      console.log('ResourcesView -> Measured height:', height, 'Rect:', rect);
       if (height && height > 0) {
         setListHeight(height);
       }
@@ -309,6 +308,7 @@ export function ResourcesView() {
     
     return () => observer.disconnect();
   }, []);
+
 
   // Modal state for Create Resource form
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -504,16 +504,17 @@ export function ResourcesView() {
 
             {/* Rows list with infinite scroll sentinel at the bottom */}
             <div className="flex-1 overflow-hidden" ref={containerRef}>
-              <List
-                height={listHeight}
-                itemCount={sortedData.length}
-                itemSize={52} // Matches original h-[52px]
-                itemData={itemData}
-                width="100%"
-                className="overflow-x-hidden"
-              >
-                {TableRow}
-              </List>
+              {listHeight > 0 && sortedData.length > 0 && (
+                <List
+                  height={listHeight}
+                  rowCount={sortedData.length}
+                  rowHeight={52} 
+                  rowProps={{ data: itemData }}
+                  rowComponent={TableRow as any}
+                  width="100%"
+                  className="overflow-x-hidden"
+                />
+              )}
             </div>
             
             {/* 

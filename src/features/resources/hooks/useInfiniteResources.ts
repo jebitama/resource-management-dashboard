@@ -106,7 +106,11 @@ export function useInfiniteResources(options: UseInfiniteResourcesOptions = {}) 
    * render, causing downstream components to re-render unnecessarily.
    */
   const allResources = useMemo(
-    () => query.data?.pages.flatMap((page) => page.data) ?? [],
+    () => {
+      const flatData = query.data?.pages.flatMap((page) => page.data) ?? [];
+      console.log('useInfiniteResources -> flatData:', flatData.length, 'pages:', query.data?.pages.length);
+      return flatData;
+    },
     [query.data?.pages]
   );
 
