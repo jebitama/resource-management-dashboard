@@ -8,10 +8,11 @@
  * ==========================================================================
  */
 
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
-import { Sidebar, type ViewId } from '@/components/layout/Sidebar';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { PageLoader } from '@/components/ui/PageLoader';
 
@@ -24,15 +25,6 @@ const LiveFeedView = lazy(() => import('@/features/live-feed/LiveFeedView').then
 const QueueLogs = lazy(() => import('@/features/queue/QueueLogs').then(module => ({ default: module.QueueLogs })));
 
 export default function App() {
-  const [currentView, setCurrentView] = useState<ViewId>('dashboard');
-
-  /**
-   * useCallback: Prevents creating a new navigate function on every render,
-   * which would cause the memoized Sidebar to re-render unnecessarily.
-   */
-  const handleNavigate = useCallback((view: ViewId) => {
-    setCurrentView(view);
-  }, []);
 
   return (
     <>
@@ -45,7 +37,7 @@ export default function App() {
       <SignedIn>
         <div className="flex h-screen overflow-hidden bg-bg-main">
           {/* Sidebar Navigation */}
-          <Sidebar currentView={currentView} onNavigate={handleNavigate} />
+          <Sidebar />
 
           {/* Main Content Area */}
           <div className="flex flex-1 flex-col overflow-hidden">
@@ -55,21 +47,15 @@ export default function App() {
               {/* Suspense wrapper for lazy-loaded route views */}
               <Suspense fallback={<PageLoader message="Preparing your dashboard..." />}>
                 <AnimatePresence mode="wait">
-                  {currentView === 'dashboard' && (
-                    <DashboardView key="dashboard" />
-                  )}
-                  {currentView === 'resources' && (
-                    <ResourcesView key="resources" />
-                  )}
-                  {currentView === 'live-feed' && (
-                    <LiveFeedView key="live-feed" />
-                  )}
-                  {currentView === 'admin' && (
-                    <AdminDashboard key="admin" />
-                  )}
-                  {currentView === 'queue-logs' && (
-                    <QueueLogs key="queue-logs" />
-                  )}
+                  <Routes>
+                    <Route path="/" element={<DashboardView />} />
+                    <Route path="/resources" element={<ResourcesView />} />
+                    <Route path="/live-feed" element={<LiveFeedView />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/queue-logs" element={<QueueLogs />} />
+                    {/* Fallback to dashboard */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
                 </AnimatePresence>
               </Suspense>
             </main>

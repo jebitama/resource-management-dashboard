@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApolloProvider } from '@apollo/client/react';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { apolloClient } from '@/graphql/client';
+import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '@/app/ThemeProvider';
 import App from '@/App';
 
@@ -46,7 +47,9 @@ createRoot(rootElement).render(
       <QueryClientProvider client={queryClient}>
         <ApolloProvider client={apolloClient}>
           <ThemeProvider>
-            <App />
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
           </ThemeProvider>
         </ApolloProvider>
       </QueryClientProvider>

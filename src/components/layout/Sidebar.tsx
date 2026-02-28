@@ -9,6 +9,7 @@
  */
 
 import { memo, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAppStore } from '@/store/appStore';
@@ -20,13 +21,11 @@ import { cn } from '@/lib/utils';
 
 export type ViewId = 'dashboard' | 'resources' | 'live-feed' | 'admin' | 'queue-logs';
 
-interface SidebarProps {
-  currentView: ViewId;
-  onNavigate: (view: ViewId) => void;
-}
+interface SidebarProps {}
 
 interface NavItem {
   id: ViewId;
+  path: string;
   labelKey: string;
   icon: React.ReactNode;
 }
@@ -36,6 +35,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   {
     id: 'dashboard',
+    path: '/',
     labelKey: 'nav.dashboard',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -45,6 +45,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'resources',
+    path: '/resources',
     labelKey: 'nav.resources',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -54,6 +55,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'live-feed',
+    path: '/live-feed',
     labelKey: 'nav.liveFeed', // We'll add this to translation or fallback
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -63,6 +65,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'admin',
+    path: '/admin',
     labelKey: 'Admin Panel', 
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -72,6 +75,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'queue-logs',
+    path: '/queue-logs',
     labelKey: 'Queue Logs',
     icon: (
       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -83,7 +87,7 @@ const NAV_ITEMS: NavItem[] = [
 
 // ---------- Component ----------
 
-export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: SidebarProps) {
+export const Sidebar = memo(function Sidebar(_props: SidebarProps) {
   const { t } = useTranslation();
   const isCollapsed = useAppStore((s) => s.preferences.sidebarCollapsed);
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
@@ -144,13 +148,11 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2" role="navigation" aria-label="Main navigation">
         {visibleNavItems.map((item) => {
-          const isActive = item.id === currentView;
           return (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => onNavigate(item.id)}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
+              to={item.path}
+              className={({ isActive }) => cn(
                 'relative flex w-full items-center rounded-lg py-2.5 transition-all',
                 isCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
                 'text-sm font-medium hover:bg-bg-muted focus-visible:ring-2 focus-visible:ring-ring',
@@ -159,27 +161,31 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
                   : 'text-text-secondary hover:text-text-primary'
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="sidebar-active"
-                  className="absolute inset-0 rounded-lg bg-primary/10"
-                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                />
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebar-active"
+                      className="absolute inset-0 rounded-lg bg-primary/10"
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative z-10 flex-shrink-0">{item.icon}</span>
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        className="relative z-10 overflow-hidden whitespace-nowrap"
+                      >
+                        {item.labelKey.includes('.') ? t(item.labelKey) : item.labelKey}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </>
               )}
-              <span className="relative z-10 flex-shrink-0">{item.icon}</span>
-              <AnimatePresence>
-                {!isCollapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    className="relative z-10 overflow-hidden whitespace-nowrap"
-                  >
-                    {item.labelKey.includes('.') ? t(item.labelKey) : item.labelKey}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </button>
+            </NavLink>
           );
         })}
       </nav>
