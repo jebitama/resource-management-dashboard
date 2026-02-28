@@ -25,23 +25,31 @@ This project follows a strict **feature-based architecture** combined with a **V
 /
 ├── api/                    # Vercel Serverless Functions (Backend)
 │   ├── index.ts            # Compacted main router bypassing Vercel Hobby limits
-│   ├── _routes/            # Hidden endpoints logic (admin, resources, users, jobs)
 │   ├── _utils/             # Shared serverless utilities (db, ratelimit, auth)
-│   └── webhooks/           # Clerk & QStash signature-verified isolated webhooks
+│   ├── admin/              # Private RBAC administrative endpoints
+│   ├── resources/          # Resource management & infinite scroll APIs
+│   ├── users/              # Identity syncing & profile endpoints
+│   ├── webhooks/           # Clerk & QStash signature-verified isolated webhooks
+│   └── health.ts           # System status monitor
 ├── prisma/                 # PostgreSQL Database Schema & Config
 ├── public/                 # Static Assets (robots.txt, etc)
 └── src/                    # React Frontend
     ├── app/                # App shell, theme providers
-    ├── components/ui/      # Reusable design system primitives (Skeletons, Badges)
+    ├── components/         # Standardized design system
+    │   ├── ui/             # Primitives (Skeletons, EmptyState, StatusBadge)
+    │   └── layout/         # UI Shell (Sidebar, Header, Contexts)
     ├── features/           # Domain-driven feature modules
     │   ├── admin/          # RBAC requests & user management directory
-    │   ├── auth/           # Custom Clerk identity flows
-    │   ├── dashboard/      # Main infrastructure metrics view
-    │   ├── live-feed/      # Real-time WebSocket event log
-    │   └── resources/      # Infinite-scroll virtualized data management
-    ├── graphql/            # Apollo Client integrations
-    ├── types/              # Domain-specific TypeScript declarations (resources, queries, common)
-    └── store/              # Zustand state management
+    │   ├── resources/      # Infinite-scroll virtualized data management
+    │   ├── queue/          # QStash background job & event monitoring
+    │   ├── dashboard/      # Infrastructure metrics & real-time analytics
+    │   └── live-feed/      # Activity stream & audit logs
+    ├── graphql/            # Apollo Client configurations
+    ├── i18n/               # Internationalization & locale dictionaries
+    ├── hooks/              # Shared logic (RBAC, Socket, UI)
+    ├── lib/                # Featureless utilities & mock generators
+    ├── store/              # Zustand state management
+    └── types/              # Discriminated unions & API interfaces
 ```
 
 ## ⚡ Technical Highlights
@@ -70,32 +78,27 @@ Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's st
 | Technique | Where | Why |
 |---|---|---|
 | **`useInfiniteQuery`** | `ResourcesView` | Cursor-based database pagination against Postgres paired with an `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
-| **`react-window`** | `ResourcesView` | Highly optimized DOM node virtualization using `FixedSizeList` to render 10,000+ rows smoothly without exhausting client memory. |
+| **`react-window` v2.2+** | `ResourcesView` | Highly optimized responsive virtualization using the modern `List` component. Automatically handles zero-height collapse and window resizing for 10,000+ rows. |
 | **Optimistic Updates** | Status Toggling | UI patches local Apollo/Tanstack caches instantly before server acknowledgment. Automatic rollback on backend failure. |
 | **`useMemo` / `React.memo`** | Table Rows | Stops sibling rows from entirely re-rendering when modifying independent `useState` variables in the parent map. |
 | **Staggered Motion** | `QueueLogs` | Orchestrated `framer-motion` variants applying `staggerChildren: 0.05` to provide a premium "fluid" entry effect for data logs. |
 
 ### 5. Skeleton Loaders & UX Architecture
-- **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>`, `<TableRowSkeleton>`, and `<LogSkeleton>` shapes enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
+- **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>`, `<TableRowSkeleton>`, and bespoke card skeletons in the `AdminDashboard`, enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
 - **Zustand Persistence:** `localStorage` naturally ties Sidebar Collapses, Themes, and Locale Preferences seamlessly across sessions via Immer modifiers.
-- **i18n Readiness:** Complete Internationalization config mapped to React-i18next standard dictionaries.
+- **i18n Readiness:** Complete Internationalization config mapped to React-i18next standard dictionaries (EN/ID/JP).
 - **Micro-Animations:** Hover-reactive metrics and "glass-morphism" transition effects powered by Framer Motion.
-- **Custom UI Illustrations:** Features bespoke generated illustration assets (`assets/illustrations/`) for `EmptyState` and Error views, including context-aware graphics for "No Requests", "No Logs", and "Access Denied" states.
+- **Custom UI Illustrations:** Features bespoke generated illustration assets (`assets/illustrations/`) integrated into `EmptyState` and Error views, including context-aware graphics for "No Pending Requests", "No Resources Found", and "Access Denied" states.
 
 ### 6. Performance & Code Splitting
 - **Dynamic Feature Imports:** Integrated React `lazy` and `Suspense` bounds at the root router level (`App.tsx`). Features like `AdminDashboard`, `ResourcesView`, and `QueueLogs` are split into separate chunks, significantly reducing initial bundle size and Improving Time to Interactive (TTI).
 - **Image Optimization:** Favicon and custom branding assets are optimized for fast delivery as low-weight PNG/SVG formats.
 
-### 7. Security Configurations
-Production builds are heavily locked down for private intranets:
-- **`robots.txt` Disallow All:** Prevent rogue Web Crawlers from scraping Vercel Deploy domains.
-- **Zero `any` Typings:** Exhaustive discriminated unions validate Socket connections enforcing complete TypeScript rigidness.
-
 ### 7. Infrastructure Patterns
-- **API Compacting (Serverless Routing):** The backend endpoints are merged into a single `api/index.ts` handler that dynamically routes sub-paths from the hidden `api/_routes` directory. This architectural bypasses the strict **12 Serverless Function limit** imposed by Vercel's Hobby Tier, running the entire enterprise backend cleanly within just 3 dedicated functions.
-- **API Project References:** Unlike basic "flat" repositories, the `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `module: "CommonJS"`. This ensures Vercel's edge native Node.js runtime executes securely without ESNext configuration conflicts from Vite.
+- **API Compacting (Serverless Routing):** The backend endpoints are merged into a single `api/index.ts` handler that dynamically routes sub-paths from the hidden `api/_routes` directory. This architectural bypasses the strict **12 Serverless Function limit** imposed by Vercel's Hobby Tier.
+- **Dedicated build context:** The `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `module: "CommonJS"`. This ensures Vercel's edge native Node.js runtime executes securely without ESNext configuration conflicts from Vite.
 - **Modular Type Architecture:** Core types are decoupled into domain-driven modules (`src/types/resources.ts`, `queries.ts`, etc.) preventing the "God File" anti-pattern and improving IDE performance.
-- **Standardized Environment Management:** Coherent environment variable mapping (e.g., `QSTASH_TOKEN`) ensures security configurations are easily auditable across local, staging, and production environments.
+- **Standardized Environment Management:** Coherent environment variable mapping (e.g., `QSTASH_TOKEN`, `CLERK_SECRET_KEY`) ensures security configurations are easily auditable.
 
 ---
 
@@ -103,13 +106,15 @@ Production builds are heavily locked down for private intranets:
 
 | Domain | Technology | Rationale |
 |---|---|---|
-| **Framework** | Vercel (Next-Gen) + Vite (React) | Combined Edge execution APIs seamlessly backing a high-speed Vite client. |
+| **Framework** | Vercel (Edge) + Vite (React 18.3) | Combined Edge execution APIs seamlessly backing a high-speed Vite client. |
 | **Styling** | Tailwind CSS 4 | Utility-first with precise Glassmorphism / Semantic CSS variables. |
-| **Database** | Prisma (PostgreSQL) | Type-safe deterministic querying mapped manually against Auth configurations. |
+| **Icons** | Lucide React | Modern, consistent stroke-based icons. |
+| **Database** | Prisma + Cloud PostgreSQL | Type-safe deterministic querying mapped manually against Auth configurations. |
 | **State Layer** | Zustand + Immer | Lightweight, boilerplate-free immutable stores. |
-| **Data Fetching** | TanStack Query + Apollo Client | Dual orchestration handling Infinite-Scroll DOM endpoints and dynamic nested mappings. |
+| **Data Fetching** | TanStack Query + Apollo Client | Dual orchestration handling Infinite-Scroll DOM endpoints and dynamic data sync. |
 | **Identity** | Clerk | Best-in-class multi-tenant user authentication and session management. |
 | **Serverless Infra** | Upstash (Redis / QStash) | Serverless data stores for rapid polling checks, queue execution, and rate limiting. |
+| **Animations** | Framer Motion | High-fidelity micro-interactions and layout transitions. |
 | **Testing** | Vitest | Industry-standard unit and E2E smoke tests natively integrated into Vite plugins. |
 
 ---

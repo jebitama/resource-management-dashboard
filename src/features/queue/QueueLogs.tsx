@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import ErrorLogsImg from '@/assets/illustrations/error_logs.png';
+import NoRequestsImg from '@/assets/illustrations/no_requests.png';
 
 type QStashEvent = {
   time: number;
@@ -97,9 +98,12 @@ export function QueueLogs() {
               key="empty"
               initial={{ opacity: 0, y: 10 }} 
               animate={{ opacity: 1, y: 0 }}
-              className="p-12 text-center text-text-muted"
             >
-               No events found in the last few hours.
+              <EmptyState 
+                title="No Events Found"
+                description="There are no QStash events to display for the current period. Active background jobs will appear here in real-time."
+                imageUrl={NoRequestsImg}
+              />
             </motion.div>
           ) : (
             <motion.div 

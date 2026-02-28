@@ -3,6 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useRBAC, type DBUser } from '@/hooks/useRBAC';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Skeleton, TableRowSkeleton } from '@/components/ui/Skeleton';
+import NoRequestsImg from '@/assets/illustrations/no_requests.png';
 
 interface AccessRequest {
   id: string;
@@ -15,6 +18,23 @@ interface AccessRequest {
     firstName: string;
     role: string;
   };
+}
+
+function RequestCardSkeleton() {
+  return (
+    <div className="glass-card p-4 flex justify-between items-center animate-pulse">
+      <div className="space-y-2 flex-1">
+        <div className="flex items-center gap-2">
+          <Skeleton width={120} height={16} />
+          <Skeleton width={50} height={16} className="rounded" />
+        </div>
+        <Skeleton width="60%" height={12} variant="text" />
+        <Skeleton width="40%" height={12} variant="text" />
+        <Skeleton width={100} height={10} variant="text" className="mt-2" />
+      </div>
+      <Skeleton width={100} height={32} className="rounded-lg ml-4" />
+    </div>
+  );
 }
 
 export function AdminDashboard() {
@@ -157,9 +177,18 @@ export function AdminDashboard() {
         {activeTab === 'requests' && (
           <div className="space-y-4">
              {loadingRequests ? (
-                <p className="text-sm text-text-muted">Loading requests...</p>
+                <>
+                  <RequestCardSkeleton />
+                  <RequestCardSkeleton />
+                  <RequestCardSkeleton />
+                </>
              ) : requests?.length === 0 ? (
-                <p className="text-sm text-text-muted">No pending access requests.</p>
+                <EmptyState 
+                  title="No Pending Requests"
+                  description="All access requests have been processed. New requests from team members will appear here for approval."
+                  imageUrl={NoRequestsImg}
+                  className="py-12"
+                />
              ) : (
                requests?.map(req => (
                  <div key={req.id} className="glass-card p-4 flex justify-between items-center">
@@ -186,7 +215,16 @@ export function AdminDashboard() {
         {activeTab === 'users' && isSuperAdmin && (
           <div className="space-y-4">
              {loadingUsers ? (
-                <p className="text-sm text-text-muted">Loading user directory...</p>
+                <div className="glass-card overflow-hidden">
+                  <div className="bg-bg-muted/50 border-b border-border h-12 flex items-center px-4">
+                    <Skeleton width="100%" height={14} />
+                  </div>
+                  <TableRowSkeleton />
+                  <TableRowSkeleton />
+                  <TableRowSkeleton />
+                  <TableRowSkeleton />
+                  <TableRowSkeleton />
+                </div>
              ) : (
                <div className="glass-card overflow-hidden">
                  <table className="w-full text-left text-sm">

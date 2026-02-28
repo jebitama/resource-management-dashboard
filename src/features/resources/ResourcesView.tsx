@@ -25,6 +25,8 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { TableRowSkeleton } from '@/components/ui/Skeleton';
 import { CreateResourceModal } from '@/features/resources/components/CreateResourceModal';
+import { EmptyState } from '@/components/ui/EmptyState';
+import NoResourcesImg from '@/assets/illustrations/no_resources.png';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatPercentage, formatRelativeTime } from '@/lib/utils';
 import type { Resource, ResourceStatusType } from '@/types';
@@ -438,9 +440,15 @@ export function ResourcesView() {
             </div>
           </div>
         ) : sortedData.length === 0 ? (
-          <div className="flex h-64 items-center justify-center">
-            <p className="text-sm text-text-muted">{t('resources.noResults')}</p>
-          </div>
+          <EmptyState 
+            title="No Resources Found"
+            description="We couldn't find any resources matching your current filters. Try adjusting your search or filters to see more results."
+            imageUrl={NoResourcesImg}
+            action={{
+              label: "Clear All Filters",
+              onClick: () => useAppStore.getState().resetFilters()
+            }}
+          />
         ) : (
           <>
             {/* Table Header */}
