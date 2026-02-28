@@ -8,5 +8,15 @@
       "src": "package.json",
       "use": "@vercel/static-build"
     }
+  ],
+  "rewrites": [
+    { 
+      "source": "/api/webhooks/(.*)", 
+      "destination": "/api/webhooks/$1" 
+    },
+    { 
+      "source": "/api/(.*)", 
+      "destination": "/api/index" 
+    }
   ]
 }
