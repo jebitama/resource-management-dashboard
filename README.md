@@ -78,13 +78,17 @@ Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's st
 - **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>` and `<TableRowSkeleton>` shapes enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
 - **Zustand Persistence:** `localStorage` naturally ties Sidebar Collapses, Themes, and Locale Preferences seamlessly across sessions via Immer modifiers.
 - **i18n Readiness:** Complete Internationalization config mapped to React-i18next standard dictionaries.
+- **Custom UI Empty States:** Features bespoke generated illustration assets (`assets/illustrations/`) for `EmptyState` and Error views, providing a premium, polished feel during fallback networking scenarios.
 
-### 6. Security Configurations
+### 6. Performance & Code Splitting
+- **Dynamic Feature Imports:** Integrated React `lazy` and `Suspense` bounds at the root router level (`App.tsx`). This completely mitigates monolithic JavaScript bundling, deferring specific feature payload rendering (`AdminDashboard.js`, `LiveFeedView.js`) strictly upon user navigation while gracefully showcasing `<PageLoader>` transitional spinners.
+
+### 7. Security Configurations
 Production builds are heavily locked down for private intranets:
 - **`robots.txt` Disallow All:** Prevent rogue Web Crawlers from scraping Vercel Deploy domains.
 - **Zero `any` Typings:** Exhaustive discriminated unions validate Socket connections enforcing complete TypeScript rigidness.
 
-### 7. Senior Infrastructure Patterns
+### 7. Infrastructure Patterns
 - **API Compacting (Serverless Routing):** The backend endpoints are merged into a single `api/index.ts` handler that dynamically routes sub-paths from the hidden `api/_routes` directory. This architectural bypasses the strict **12 Serverless Function limit** imposed by Vercel's Hobby Tier, running the entire enterprise backend cleanly within just 3 dedicated functions.
 - **API Project References:** Unlike basic "flat" repositories, the `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `module: "CommonJS"`. This ensures Vercel's edge native Node.js runtime executes securely without ESNext configuration conflicts from Vite.
 - **Modular Type Architecture:** Core types are decoupled into domain-driven modules (`src/types/resources.ts`, `queries.ts`, etc.) preventing the "God File" anti-pattern and improving IDE performance.

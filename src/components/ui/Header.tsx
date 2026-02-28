@@ -21,9 +21,16 @@ export function Header() {
         'bg-bg-header backdrop-blur-md'
       )}
     >
-      {/* Left: System Health Ticker */}
-      <div className="flex-1 overflow-hidden">
-        <SystemHealthTicker />
+      {/* Left: Logo & System Health Ticker */}
+      <div className="flex flex-1 items-center gap-4 overflow-hidden">
+        <img 
+          src="/favicon.png" 
+          alt="Dashboard Logo" 
+          className="h-8 w-8 object-contain"
+        />
+        <div className="flex-1 overflow-hidden">
+          <SystemHealthTicker />
+        </div>
       </div>
 
       {/* Right: Controls */}

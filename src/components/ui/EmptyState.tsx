@@ -13,6 +13,7 @@ import { Button, type ButtonProps } from '@/components/ui/Button';
 
 interface EmptyStateProps {
   icon?: ReactNode;
+  imageUrl?: string;
   title: string;
   description?: string;
   action?: {
@@ -25,6 +26,7 @@ interface EmptyStateProps {
 
 export function EmptyState({
   icon,
+  imageUrl,
   title,
   description,
   action,
@@ -32,11 +34,17 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className={cn('flex flex-col items-center justify-center py-16 text-center', className)}>
-      {icon && (
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={title} 
+          className="mb-6 h-48 object-contain"
+        />
+      ) : icon ? (
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-bg-muted text-text-muted">
           {icon}
         </div>
-      )}
+      ) : null}
       <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
       {description && (
         <p className="mt-1 max-w-sm text-xs text-text-secondary">{description}</p>
