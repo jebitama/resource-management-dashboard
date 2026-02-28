@@ -58,6 +58,7 @@ The Vercel API is strictly protected against aggressive polling by **Upstash Sli
 - Enforced HTTP Headers (`X-RateLimit-*`) are attached to all API responses automatically.
 
 ### 3. Asynchronous Job Queues via Upstash QStash
+*(Note: To sustain Vercel's strict 12 Serverless Function limit on the Hobby tier, the actual backend webhooks for this section have been safely removed to prevent deployment blocking. The functionalities below operate visually via Local Mocked Promises inside the React clients, though the infrastructure was natively built as follows:)*
 Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's standard 10s maximum execution limits:
 1. An admin triggers the background queue via `/api/jobs/trigger-report` or users request admin access.
 2. The payload is offloaded over HTTP directly to Upstash QStash.
