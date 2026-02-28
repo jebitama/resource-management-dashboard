@@ -11,7 +11,7 @@
 [![Upstash](https://img.shields.io/badge/Upstash-Redis/QStash-00E9A3?style=flat-square&logo=upstash)](https://upstash.com)
 [![Clerk](https://img.shields.io/badge/Clerk-Authentication-6C47FF?style=flat-square&logo=clerk)](https://clerk.com)
 
-*A production-ready platform demonstrating senior-level React architecture, serverless backend integrations, Role-Based Access Control (RBAC), Upstash rate-limiting, and deep enterprise UX patterns.*
+*A production-ready platform demonstrating enterprise-level React architecture, serverless backend integrations, Role-Based Access Control (RBAC), Upstash rate-limiting, and deep enterprise UX patterns.*
 
 </div>
 
