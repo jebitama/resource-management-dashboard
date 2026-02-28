@@ -290,19 +290,22 @@ export function ResourcesView() {
 
   // Keep track of the container size for react-window
   const containerRef = useRef<HTMLDivElement>(null);
-  const [listHeight, setListHeight] = useState(0);
+  const [listHeight, setListHeight] = useState(600); // Sensible default instead of 0
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setListHeight(entry.contentRect.height);
+    
+    const measure = () => {
+      const height = containerRef.current?.getBoundingClientRect().height;
+      if (height && height > 0) {
+        setListHeight(height);
       }
-    });
+    };
+
+    const observer = new ResizeObserver(() => measure());
     observer.observe(containerRef.current);
     
-    // Initial measure
-    setListHeight(containerRef.current.getBoundingClientRect().height);
+    measure(); // Initial measure
     
     return () => observer.disconnect();
   }, []);
@@ -437,7 +440,7 @@ export function ResourcesView() {
       </div>
 
       {/* Table */}
-      <div className="glass-card flex-1 overflow-hidden">
+      <div className="glass-card flex flex-1 flex-col overflow-hidden">
         {isLoading && !resources ? (
           <div className="flex flex-col h-full">
             <div

@@ -69,19 +69,22 @@ Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's st
 ### 4. High-Performance Front-End Data Handling
 | Technique | Where | Why |
 |---|---|---|
-| **`useInfiniteQuery`** | Main Datagrid | Cursor-based database pagination against Postgres paired with an `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
-| **`react-window`** | Main Datagrid | Highly optimized DOM node virtualization using `FixedSizeList` to render 10,000+ rows smoothly without exhausting client memory. |
+| **`useInfiniteQuery`** | `ResourcesView` | Cursor-based database pagination against Postgres paired with an `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
+| **`react-window`** | `ResourcesView` | Highly optimized DOM node virtualization using `FixedSizeList` to render 10,000+ rows smoothly without exhausting client memory. |
 | **Optimistic Updates** | Status Toggling | UI patches local Apollo/Tanstack caches instantly before server acknowledgment. Automatic rollback on backend failure. |
 | **`useMemo` / `React.memo`** | Table Rows | Stops sibling rows from entirely re-rendering when modifying independent `useState` variables in the parent map. |
+| **Staggered Motion** | `QueueLogs` | Orchestrated `framer-motion` variants applying `staggerChildren: 0.05` to provide a premium "fluid" entry effect for data logs. |
 
 ### 5. Skeleton Loaders & UX Architecture
-- **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>` and `<TableRowSkeleton>` shapes enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
+- **Enterprise Loading States:** Eliminated jittery "spinners" in favor of spatial-aware `<MetricCardSkeleton>`, `<TableRowSkeleton>`, and `<LogSkeleton>` shapes enforcing layout stability (resolving Cumulative Layout Shift SEO penalties).
 - **Zustand Persistence:** `localStorage` naturally ties Sidebar Collapses, Themes, and Locale Preferences seamlessly across sessions via Immer modifiers.
 - **i18n Readiness:** Complete Internationalization config mapped to React-i18next standard dictionaries.
-- **Custom UI Empty States:** Features bespoke generated illustration assets (`assets/illustrations/`) for `EmptyState` and Error views, providing a premium, polished feel during fallback networking scenarios.
+- **Micro-Animations:** Hover-reactive metrics and "glass-morphism" transition effects powered by Framer Motion.
+- **Custom UI Illustrations:** Features bespoke generated illustration assets (`assets/illustrations/`) for `EmptyState` and Error views, including context-aware graphics for "No Requests", "No Logs", and "Access Denied" states.
 
 ### 6. Performance & Code Splitting
-- **Dynamic Feature Imports:** Integrated React `lazy` and `Suspense` bounds at the root router level (`App.tsx`). This completely mitigates monolithic JavaScript bundling, deferring specific feature payload rendering (`AdminDashboard.js`, `LiveFeedView.js`) strictly upon user navigation while gracefully showcasing `<PageLoader>` transitional spinners.
+- **Dynamic Feature Imports:** Integrated React `lazy` and `Suspense` bounds at the root router level (`App.tsx`). Features like `AdminDashboard`, `ResourcesView`, and `QueueLogs` are split into separate chunks, significantly reducing initial bundle size and Improving Time to Interactive (TTI).
+- **Image Optimization:** Favicon and custom branding assets are optimized for fast delivery as low-weight PNG/SVG formats.
 
 ### 7. Security Configurations
 Production builds are heavily locked down for private intranets:
