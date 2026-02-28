@@ -13,7 +13,7 @@
  * ==========================================================================
  */
 
-import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react';
+import { memo, useMemo, useCallback, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { List } from 'react-window';
 import { useTranslation } from 'react-i18next';
@@ -36,14 +36,8 @@ const HEADER_HEIGHT = 48;
 
 // ---------- Row Component ----------
 
-interface RowProps {
-  index: number;
-  style: React.CSSProperties;
-  data: {
-    resources: Resource[];
-    onStatusChange: (id: string, status: ResourceStatusType) => void;
-  };
-}
+
+// ---------- Row Component ----------
 
 /**
  * React.memo: Each row is memoized to prevent re-rendering when sibling
@@ -287,27 +281,8 @@ export function ResourcesView() {
 
   // Keep track of the container size for react-window
   const containerRef = useRef<HTMLDivElement>(null);
-  const [listHeight, setListHeight] = useState(600); // Sensible default instead of 0
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    
-    const measure = () => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      const height = rect?.height;
-      console.log('ResourcesView -> Measured height:', height, 'Rect:', rect);
-      if (height && height > 0) {
-        setListHeight(height);
-      }
-    };
-
-    const observer = new ResizeObserver(() => measure());
-    observer.observe(containerRef.current);
-    
-    measure(); // Initial measure
-    
-    return () => observer.disconnect();
-  }, []);
+  // Modal state for Create Resource form
 
 
   // Modal state for Create Resource form
@@ -504,14 +479,12 @@ export function ResourcesView() {
 
             {/* Rows list with infinite scroll sentinel at the bottom */}
             <div className="flex-1 overflow-hidden" ref={containerRef}>
-              {listHeight > 0 && sortedData.length > 0 && (
+              {sortedData.length > 0 && (
                 <List
-                  height={listHeight}
                   rowCount={sortedData.length}
                   rowHeight={52} 
                   rowProps={{ data: itemData }}
                   rowComponent={TableRow as any}
-                  width="100%"
                   className="overflow-x-hidden"
                 />
               )}
