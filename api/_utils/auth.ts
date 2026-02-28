@@ -57,7 +57,10 @@ export const requireAuthRole = (allowedRoles: string[]) => {
     } catch(err: any) {
       console.error('RBAC Middleware Error:', err?.message || err);
       // Failsafe 500 error, mostly triggers if database crashes internally
-      res.status(500).json({ error: 'Internal system error processing RBAC authorization' });
+      res.status(500).json({ 
+        error: 'Internal system error processing RBAC authorization',
+        details: err?.message || 'Unknown error'
+      });
       return null;
     }
   };

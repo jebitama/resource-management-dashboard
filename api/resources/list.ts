@@ -50,8 +50,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     };
 
     return res.status(200).json(responseData);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching paginated resources:', error);
-    return res.status(500).json({ error: 'Failed to fetch resources' });
+    return res.status(500).json({ 
+      error: 'Failed to fetch resources',
+      details: error?.message || 'Unknown error'
+    });
   }
 }
