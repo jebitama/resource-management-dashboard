@@ -48,10 +48,16 @@ export const requireAuthRole = (allowedRoles: string[]) => {
 
       let user = await prisma.user.findUnique({ where: { clerkId: userId } });
       if (!user) {
+         // Fetch full user details from Clerk to populate local DB correctly
+         const clerk = getClerkClient();
+         const clerkUser = await clerk.users.getUser(userId);
+         
          user = await prisma.user.create({
            data: {
              clerkId: userId,
-             email: userId + '@fallback.io',
+             email: clerkUser.emailAddresses[0]?.emailAddress || `${userId}@fallback.io`,
+             firstName: clerkUser.firstName || '',
+             lastName: clerkUser.lastName || '',
              role: 'USER',
              status: 'PENDING',
            }
