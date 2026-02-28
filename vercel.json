@@ -1,2 +1,22 @@
 {
+  "builds": [
+    {
+      "src": "api/**/!(.*)*.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
+  "rewrites": [
+    { "source": "/api/users/me", "destination": "/api/users/me" },
+    { "source": "/api/resources/list", "destination": "/api/resources/list" },
+    { "source": "/api/access-requests", "destination": "/api/access-requests/index" },
+    { "source": "/api/admin/users", "destination": "/api/admin/users/index" },
+    { "source": "/api/admin/users/(.*)/role", "destination": "/api/admin/users/[id]/role" },
+    { "source": "/api/admin/access-requests", "destination": "/api/admin/access-requests/index" },
+    { "source": "/api/admin/access-requests/(.*)/approve", "destination": "/api/admin/access-requests/[id]/approve" },
+    { "source": "/api/webhooks/clerk", "destination": "/api/webhooks/clerk" }
+  ]
 }
