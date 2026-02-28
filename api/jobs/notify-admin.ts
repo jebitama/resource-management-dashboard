@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifySignatureAppRouter } from '@upstash/qstash/dist/nextjs';
+
 
 async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
