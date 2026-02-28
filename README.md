@@ -24,10 +24,10 @@ This project follows a strict **feature-based architecture** combined with a **V
 ```text
 /
 ├── api/                    # Vercel Serverless Functions (Backend)
+│   ├── index.ts            # Compacted main router bypassing Vercel Hobby limits
+│   ├── _routes/            # Hidden endpoints logic (admin, resources, users, jobs)
 │   ├── _utils/             # Shared serverless utilities (db, ratelimit, auth)
-│   ├── admin/              # Elevated privilege endpoints
-│   ├── jobs/               # QStash background job triggers
-│   └── webhooks/           # Clerk & QStash signature-verified webhooks
+│   └── webhooks/           # Clerk & QStash signature-verified isolated webhooks
 ├── prisma/                 # PostgreSQL Database Schema & Config
 ├── public/                 # Static Assets (robots.txt, etc)
 └── src/                    # React Frontend
@@ -84,7 +84,8 @@ Production builds are heavily locked down for private intranets:
 - **Zero `any` Typings:** Exhaustive discriminated unions validate Socket connections enforcing complete TypeScript rigidness.
 
 ### 7. Senior Infrastructure Patterns
-- **API Project References:** Unlike basic "flat" repositories, the `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `moduleResolution: "bundler"`. This enables clean, extensionless imports in serverless functions while maintaining strict type safety for Vercel's build pipeline.
+- **API Compacting (Serverless Routing):** The backend endpoints are merged into a single `api/index.ts` handler that dynamically routes sub-paths from the hidden `api/_routes` directory. This architectural bypasses the strict **12 Serverless Function limit** imposed by Vercel's Hobby Tier, running the entire enterprise backend cleanly within just 3 dedicated functions.
+- **API Project References:** Unlike basic "flat" repositories, the `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `module: "CommonJS"`. This ensures Vercel's edge native Node.js runtime executes securely without ESNext configuration conflicts from Vite.
 - **Modular Type Architecture:** Core types are decoupled into domain-driven modules (`src/types/resources.ts`, `queries.ts`, etc.) preventing the "God File" anti-pattern and improving IDE performance.
 - **Standardized Environment Management:** Coherent environment variable mapping (e.g., `QSTASH_TOKEN`) ensures security configurations are easily auditable across local, staging, and production environments.
 
