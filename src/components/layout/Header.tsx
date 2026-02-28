@@ -23,11 +23,6 @@ export function Header() {
     >
       {/* Left: Logo & System Health Ticker */}
       <div className="flex flex-1 items-center gap-4 overflow-hidden">
-        <img 
-          src="/favicon.png" 
-          alt="Dashboard Logo" 
-          className="h-8 w-8 object-contain"
-        />
         <div className="flex-1 overflow-hidden">
           <SystemHealthTicker />
         </div>

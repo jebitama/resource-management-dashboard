@@ -118,9 +118,11 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
               exit={{ opacity: 0, width: 0 }}
               className="flex items-center gap-2"
             >
-              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-primary-foreground">R</span>
-              </div>
+              <img 
+                src="/favicon.png" 
+                alt="Dashboard Logo" 
+                className="h-8 w-8 object-contain"
+              />
               <span className="whitespace-nowrap text-sm font-semibold text-text-primary">
                 ResManager
               </span>
