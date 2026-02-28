@@ -30,10 +30,11 @@ export const requireAuthRole = (allowedRoles: string[]) => {
       
       let verified;
       try {
-        verified = await verifyToken(token, {
-          secretKey: process.env.CLERK_SECRET_KEY || '', 
-          jwtKey: process.env.CLERK_JWT_KEY || '', 
-        });
+        const options: any = { secretKey: process.env.CLERK_SECRET_KEY || '' };
+        if (process.env.CLERK_JWT_KEY && process.env.CLERK_JWT_KEY.startsWith('-----BEGIN')) {
+          options.jwtKey = process.env.CLERK_JWT_KEY;
+        }
+        verified = await verifyToken(token, options);
       } catch (verifyErr: any) {
         console.warn('Token verification failed:', verifyErr?.message || verifyErr);
         res.status(401).json({ error: 'Invalid or expired authentication token.' });
