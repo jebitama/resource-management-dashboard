@@ -11,8 +11,8 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
-import { Sidebar, type ViewId } from '@/components/ui/Sidebar';
-import { Header } from '@/components/ui/Header';
+import { Sidebar, type ViewId } from '@/components/layout/Sidebar';
+import { Header } from '@/components/layout/Header';
 import { PageLoader } from '@/components/ui/PageLoader';
 
 // Lazy loaded views

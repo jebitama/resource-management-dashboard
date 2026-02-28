@@ -36,6 +36,11 @@ export const applyRateLimit = async (
     res.setHeader(`X-RateLimit-Limit-${type}`, limit);
     res.setHeader(`X-RateLimit-Remaining-${type}`, remaining);
     res.setHeader(`X-RateLimit-Reset-${type}`, reset);
+    
+    // Prevent aggressive Vercel/Browser caching that causes 304 Not Modified
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     if (!success) {
       res.status(429).json({ error: `Rate limit exceeded for ${type}. Too many requests to the enterprise API.` });

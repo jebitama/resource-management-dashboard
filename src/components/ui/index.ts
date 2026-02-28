@@ -29,7 +29,7 @@ export { LanguageSwitcher } from './LanguageSwitcher';
 
 export { SystemHealthTicker } from './SystemHealthTicker';
 
-export { Header } from './Header';
+export { Header } from '../layout/Header';
 
-export { Sidebar } from './Sidebar';
-export type { ViewId } from './Sidebar';
+export { Sidebar } from '../layout/Sidebar';
+export type { ViewId } from '../layout/Sidebar';
