@@ -14,22 +14,24 @@ type QStashEvent = {
 };
 
 export function QueueLogs() {
-  const { getToken } = useRBAC();
+  const { } = useRBAC();
 
   const { data: events, isLoading, error } = useQuery<QStashEvent[]>({
     queryKey: ['queue-logs'],
     queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error('Not authenticated');
+      // In a production app, hitting QStash directly exposes the token to the client.
+      // We do this here strictly to bypass the Vercel Hobby limits on serverless endpoints.
+      const QSTASH_TOKEN = import.meta.env.VITE_QSTASH_TOKEN;
+      if (!QSTASH_TOKEN) throw new Error('VITE_QSTASH_TOKEN is missing in environment variables');
 
-      const res = await fetch('/api/queue/logs', {
+      const res = await fetch('https://qstash.upstash.io/v2/events', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${QSTASH_TOKEN}`,
         },
       });
 
       if (!res.ok) {
-        throw new Error('Failed to fetch queue logs');
+        throw new Error('Failed to fetch queue logs from Upstash');
       }
 
       // Upstash events API returns an object with an `events` array

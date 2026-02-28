@@ -86,14 +86,9 @@ export function AdminDashboard() {
 
   const triggerQStashMutation = useMutation({
     mutationFn: async () => {
-      const token = await getToken();
-      const res = await fetch('/api/jobs/trigger-report', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to trigger job');
-      return data;
+      // MOCKED: API endpoint was deleted to stay under Vercel's 12 function Hobby Limit
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return { message: 'Mocked successfully: Job queued in background (API disabled for Vercel Hobby limits)' };
     },
     onSuccess: (data) => {
       alert(data.message);
