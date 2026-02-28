@@ -1,7 +1,7 @@
 import { Redis } from '@upstash/redis';
 import { Ratelimit } from '@upstash/ratelimit';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { RATE_LIMIT_CONFIG, type RateLimitType } from './lib';
+import { RATE_LIMIT_CONFIG, type RateLimitType } from './lib.js';
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || 'https://mock.upstash.io',

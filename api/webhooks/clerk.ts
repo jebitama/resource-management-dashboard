@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Webhook } from 'svix';
-import { prisma } from '../_utils/db';
+import { prisma } from '../_utils/db.js';
 
 // Required by Vercel for parsing raw body in webhooks
 export const config = {

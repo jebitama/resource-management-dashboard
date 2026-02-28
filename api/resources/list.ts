@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_utils/ratelimit';
-import { requireAuthRole } from '../_utils/auth';
-import { prisma } from '../_utils/db';
+import { applyRateLimit } from '../_utils/ratelimit.js';
+import { requireAuthRole } from '../_utils/auth.js';
+import { prisma } from '../_utils/db.js';
 import { Prisma } from '@prisma/client';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

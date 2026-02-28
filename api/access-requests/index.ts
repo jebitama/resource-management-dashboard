@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_utils/ratelimit';
-import { requireAuthRole } from '../_utils/auth';
-import { prisma } from '../_utils/db';
+import { applyRateLimit } from '../_utils/ratelimit.js';
+import { requireAuthRole } from '../_utils/auth.js';
+import { prisma } from '../_utils/db.js';
 import { Client as QStashClient } from '@upstash/qstash';
 
-const qstash = new QStashClient({ token: process.env.UPSTASH_QSTASH_TOKEN || '' });
+const qstash = new QStashClient({ token: process.env.QSTASH_TOKEN || '' });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });

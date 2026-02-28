@@ -1,11 +1,17 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClerkClient, verifyToken } from '@clerk/backend';
-import { prisma } from './db';
+import { prisma } from './db.js';
 
-const clerkClient = createClerkClient({
-  secretKey: process.env.CLERK_SECRET_KEY, // This might be missing
-  publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY
-});
+let _clerkClient: any = null;
+
+const getClerkClient = () => {
+  if (_clerkClient) return _clerkClient;
+  _clerkClient = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY,
+    publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY,
+  });
+  return _clerkClient;
+};
 
 export const requireAuthRole = (allowedRoles: string[]) => {
   return async (req: VercelRequest, res: VercelResponse) => {

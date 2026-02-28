@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_utils/ratelimit';
-import { requireAuthRole } from '../_utils/auth';
+import { applyRateLimit } from '../_utils/ratelimit.js';
+import { requireAuthRole } from '../_utils/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -9,7 +9,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const user = await requireAuthRole(['ADMIN', 'SUPERADMIN'])(req, res);
   if (!user) return;
 
-  const token = process.env.UPSTASH_QSTASH_TOKEN;
+  const token = process.env.QSTASH_TOKEN;
   if (!token) {
     return res.status(500).json({ error: 'QStash token not configured' });
   }

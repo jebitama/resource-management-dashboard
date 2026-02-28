@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_utils/ratelimit';
-import { requireAuthRole } from '../_utils/auth';
+import { applyRateLimit } from '../_utils/ratelimit.js';
+import { requireAuthRole } from '../_utils/auth.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -9,9 +9,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const dbUser = await requireAuthRole(['ADMIN', 'SUPERADMIN'])(req, res);
   if (!dbUser) return;
 
-  const UPSTASH_QSTASH_TOKEN = process.env.UPSTASH_QSTASH_TOKEN;
+  const QSTASH_TOKEN = process.env.QSTASH_TOKEN;
   
-  if (!UPSTASH_QSTASH_TOKEN) {
+  if (!QSTASH_TOKEN) {
     return res.status(503).json({ 
       error: 'Upstash QStash token is missing. In production, this call triggers a fully decoupled background queue workload.',
       simulatedSuccess: true
@@ -26,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await fetch(`https://qstash.upstash.io/v2/publish/${webhookUrl}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${UPSTASH_QSTASH_TOKEN}`,
+        'Authorization': `Bearer ${QSTASH_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ requestedBy: dbUser.id, type: 'MONTHLY_RESOURCE_SLA_REPORT' })
