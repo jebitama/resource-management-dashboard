@@ -163,8 +163,8 @@ export function useInfiniteScrollTrigger(params: {
           }
         },
         {
-          // Trigger 200px before the sentinel is visible
-          rootMargin: '200px',
+          // Trigger only when reaching the bottom
+          rootMargin: '0px',
           threshold: 0,
         }
       );

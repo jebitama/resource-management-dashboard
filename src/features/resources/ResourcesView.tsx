@@ -486,27 +486,30 @@ export function ResourcesView() {
                   rowProps={{ data: itemData }}
                   rowComponent={TableRow as any}
                   className="overflow-x-hidden"
-                />
+                >
+                  {/* Sentinel inside the scrollable container */}
+                  {hasNextPage && (
+                    <div
+                      ref={loadMoreRef}
+                      style={{ 
+                        position: 'absolute', 
+                        top: sortedData.length * 52, 
+                        width: '100%',
+                        height: 1 
+                      }}
+                    />
+                  )}
+                </List>
               )}
             </div>
             
-            {/* 
-              Intersection Observer Sentinel for Infinite Scroll
-              We place it outside the list now so it doesn't mess with the virtualizer
-            */}
-            {hasNextPage && (
-              <div
-                ref={loadMoreRef}
-                className="p-4 flex justify-center items-center text-text-muted text-xs border-t border-border"
-              >
-                {isFetchingNextPage ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                    Loading more...
-                  </span>
-                ) : (
-                  <span>Scroll for more</span>
-                )}
+            {/* Loading Indicator at Bottom (Visual only, trigger is above) */}
+            {hasNextPage && isFetchingNextPage && (
+              <div className="p-4 flex justify-center items-center text-text-muted text-xs border-t border-border">
+                <span className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  Loading more...
+                </span>
               </div>
             )}
           </>
