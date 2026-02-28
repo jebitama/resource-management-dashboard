@@ -13,8 +13,12 @@
  * ==========================================================================
  */
 
-import { memo, useMemo, useCallback, useState } from 'react';
+import { memo, useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// @ts-ignore
+import * as reactWindowImport from 'react-window';
+const reactWindow = reactWindowImport as any;
+const List = reactWindow.FixedSizeList || reactWindow.default?.FixedSizeList;
 import { useTranslation } from 'react-i18next';
 import { useUpdateResourceStatus } from '@/features/resources/hooks/useResources';
 import { useInfiniteResources, useInfiniteScrollTrigger } from '@/features/resources/hooks/useInfiniteResources';
@@ -36,9 +40,12 @@ const HEADER_HEIGHT = 48;
 // ---------- Row Component ----------
 
 interface RowProps {
-  resource: Resource;
   index: number;
-  onStatusChange: (id: string, status: ResourceStatusType) => void;
+  style: React.CSSProperties;
+  data: {
+    resources: Resource[];
+    onStatusChange: (id: string, status: ResourceStatusType) => void;
+  };
 }
 
 /**
@@ -46,7 +53,8 @@ interface RowProps {
  * rows update. With 10,000+ rows (even virtualized), preventing re-renders
  * of visible rows (~20-30 at a time) during parent state changes is critical.
  */
-const TableRow = memo(function TableRow({ resource, index, onStatusChange }: RowProps) {
+const TableRow = memo(function TableRow({ index, style, data }: RowProps) {
+  const resource = data.resources[index];
   if (!resource) return null;
 
   const cpuColor =
@@ -65,8 +73,9 @@ const TableRow = memo(function TableRow({ resource, index, onStatusChange }: Row
 
   return (
     <div
+      style={style}
       className={cn(
-        'flex items-center border-b border-border/50 px-4 text-xs h-[52px]',
+        'flex items-center border-b border-border/50 px-4 text-xs',
         'hover:bg-bg-muted/50 transition-colors',
         index % 2 === 0 ? 'bg-transparent' : 'bg-bg-muted/20'
       )}
@@ -129,7 +138,7 @@ const TableRow = memo(function TableRow({ resource, index, onStatusChange }: Row
       <div className="flex-1 flex justify-end">
         {resource.status === 'ACTIVE' && (
           <button
-            onClick={() => onStatusChange(resource.id, ResourceStatus.MAINTENANCE)}
+            onClick={() => data.onStatusChange(resource.id, ResourceStatus.MAINTENANCE)}
             className="rounded px-2 py-1 text-[10px] font-medium text-warning hover:bg-warning/10 transition-colors"
             aria-label={`Set ${resource.name} to maintenance`}
           >
@@ -279,6 +288,25 @@ export function ResourcesView() {
     fetchNextPage,
   });
 
+  // Keep track of the container size for react-window
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [listHeight, setListHeight] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setListHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(containerRef.current);
+    
+    // Initial measure
+    setListHeight(containerRef.current.getBoundingClientRect().height);
+    
+    return () => observer.disconnect();
+  }, []);
+
   // Modal state for Create Resource form
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -362,6 +390,12 @@ export function ResourcesView() {
     { key: 'department', label: t('resources.columns.department'), width: 'w-[10%] min-w-[85px]', sortable: true },
     { key: 'lastHealthCheck', label: t('resources.columns.lastCheck'), width: 'w-[10%] min-w-[80px]', sortable: true },
   ];
+
+  // Prepare item data for the virtualized list AFTER dependencies are defined
+  const itemData = useMemo(() => ({
+    resources: sortedData,
+    onStatusChange: handleStatusChange,
+  }), [sortedData, handleStatusChange]);
 
   return (
     <motion.div
@@ -466,33 +500,38 @@ export function ResourcesView() {
             </div>
 
             {/* Rows list with infinite scroll sentinel at the bottom */}
-            <div className="flex-1 overflow-auto">
-              {sortedData.map((resource, i) => (
-                <TableRow
-                  key={resource.id}
-                  index={i}
-                  resource={resource}
-                  onStatusChange={handleStatusChange}
-                />
-              ))}
-
-              {/* Intersection Observer Sentinel for Infinite Scroll */}
-              {hasNextPage && (
-                <div
-                  ref={loadMoreRef}
-                  className="p-4 flex justify-center items-center text-text-muted text-xs"
-                >
-                  {isFetchingNextPage ? (
-                    <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                      Loading more...
-                    </span>
-                  ) : (
-                    <span>Scroll for more</span>
-                  )}
-                </div>
-              )}
+            <div className="flex-1 overflow-hidden" ref={containerRef}>
+              <List
+                height={listHeight}
+                itemCount={sortedData.length}
+                itemSize={52} // Matches original h-[52px]
+                itemData={itemData}
+                width="100%"
+                className="overflow-x-hidden"
+              >
+                {TableRow}
+              </List>
             </div>
+            
+            {/* 
+              Intersection Observer Sentinel for Infinite Scroll
+              We place it outside the list now so it doesn't mess with the virtualizer
+            */}
+            {hasNextPage && (
+              <div
+                ref={loadMoreRef}
+                className="p-4 flex justify-center items-center text-text-muted text-xs border-t border-border"
+              >
+                {isFetchingNextPage ? (
+                  <span className="flex items-center gap-2">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    Loading more...
+                  </span>
+                ) : (
+                  <span>Scroll for more</span>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

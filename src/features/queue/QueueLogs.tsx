@@ -1,0 +1,111 @@
+import { useQuery } from '@tanstack/react-query';
+import { useRBAC } from '@/hooks/useRBAC';
+import { Card } from '@/components/ui/Card';
+
+type QStashEvent = {
+  time: number;
+  messageId: string;
+  state: string;
+  error?: string;
+  nextDeliveryTime?: number;
+  url: string;
+  topicName?: string;
+  endpointName?: string;
+};
+
+export function QueueLogs() {
+  const { getToken } = useRBAC();
+
+  const { data: events, isLoading, error } = useQuery<QStashEvent[]>({
+    queryKey: ['queue-logs'],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error('Not authenticated');
+
+      const res = await fetch('/api/queue/logs', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch queue logs');
+      }
+
+      // Upstash events API returns an object with an `events` array
+      const data = await res.json();
+      return data.events || [];
+    },
+    refetchInterval: 10000, // Refresh every 10 seconds
+  });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary">Queue Logs</h1>
+        <p className="mt-1 text-sm text-text-secondary">
+          Monitor background jobs and notification events processed by Upstash QStash.
+        </p>
+      </div>
+
+      <Card className="p-0 overflow-hidden">
+        {isLoading ? (
+          <div className="p-8 text-center text-text-muted">Loading logs...</div>
+        ) : error ? (
+          <div className="p-8 text-center text-error">
+            Failed to load queue logs. Ensure you have admin access and QStash is configured.
+          </div>
+        ) : events?.length === 0 ? (
+          <div className="p-8 text-center text-text-muted">
+            No events found in the last few hours.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-bg-muted/50 text-text-secondary">
+                <tr>
+                  <th className="px-4 py-3 font-medium">Time</th>
+                  <th className="px-4 py-3 font-medium">Message ID</th>
+                  <th className="px-4 py-3 font-medium">State</th>
+                  <th className="px-4 py-3 font-medium">Endpoint</th>
+                  <th className="px-4 py-3 font-medium">Error</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {events?.map((event) => (
+                  <tr key={`${event.messageId}-${event.time}`} className="hover:bg-bg-muted/30">
+                    <td className="px-4 py-3 whitespace-nowrap text-text-primary">
+                      {new Date(event.time).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-text-secondary">
+                      {event.messageId}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          event.state === 'DELIVERED'
+                            ? 'bg-success/20 text-success'
+                            : event.state === 'FAILED' || event.state === 'ERROR'
+                            ? 'bg-error/20 text-error'
+                            : 'bg-warning/20 text-warning'
+                        }`}
+                      >
+                        {event.state}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-text-secondary truncate max-w-[200px]" title={event.url}>
+                      {event.url}
+                    </td>
+                    <td className="px-4 py-3 text-error truncate max-w-[200px]" title={event.error}>
+                      {event.error || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}

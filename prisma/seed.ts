@@ -73,14 +73,20 @@ async function main() {
   console.log('  ✅ Created default Admin user (admin@enterprise.io)');
 
   // -- Create Resources --
-  console.log('📦 Creating resources...');
-  const resources = [];
-  for (let i = 0; i < 50; i++) {
-    const type = randomItem(RESOURCE_TYPES);
-    const status = randomItem(STATUSES);
-    const resource = await prisma.resource.create({
-      data: {
-        name: `${randomItem(RESOURCE_PREFIXES)}-${type.toLowerCase()}-${String(i).padStart(3, '0')}`,
+  console.log('📦 Creating 10,000 resources (optimizing for speed)...');
+  const CHUNK_SIZE = 2500;
+  const totalResources = 10000;
+  
+  for (let c = 0; c < totalResources / CHUNK_SIZE; c++) {
+    const chunkData = [];
+    for (let i = 0; i < CHUNK_SIZE; i++) {
+      const type = randomItem(RESOURCE_TYPES);
+      const status = randomItem(STATUSES);
+      const index = c * CHUNK_SIZE + i;
+      
+      chunkData.push({
+        id: `res-${String(index).padStart(5, '0')}`,
+        name: `${randomItem(RESOURCE_PREFIXES)}-${type.toLowerCase()}-${String(index).padStart(5, '0')}`,
         type,
         status,
         region: randomItem(REGIONS),
@@ -90,17 +96,18 @@ async function main() {
         costPerHour: randomBetween(0.02, 12.5),
         department: randomItem(DEPARTMENTS),
         lastHealthCheck: new Date(Date.now() - Math.floor(Math.random() * 3600000)),
-        tags: {
-          create: [
-            { name: type.toLowerCase() },
-            { name: status.toLowerCase() },
-          ],
-        },
-      },
+      });
+    }
+
+    await prisma.resource.createMany({
+      data: chunkData,
+      skipDuplicates: true,
     });
-    resources.push(resource);
+    console.log(`  ...inserted chunk ${c + 1}/${totalResources / CHUNK_SIZE}`);
   }
-  console.log(`  ✅ Created ${resources.length} resources`);
+
+  const allResources = await prisma.resource.findMany({ select: { id: true }});
+  console.log(`  ✅ Created ${allResources.length} resources`);
 
   // -- Create Team Members --
   console.log('👥 Creating team members...');
@@ -162,9 +169,10 @@ async function main() {
     // Create some allocations for this project
     const numAllocations = Math.floor(Math.random() * 5) + 1;
     for (let j = 0; j < numAllocations; j++) {
+      const dbResource = randomItem(allResources);
       await prisma.allocation.create({
         data: {
-          resourceId: randomItem(resources).id,
+          resourceId: dbResource.id,
           projectId: project.id,
           teamMemberId: randomItem(teamMembers).id,
           percentage: randomBetween(10, 100),

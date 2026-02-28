@@ -59,15 +59,17 @@ The Vercel API is strictly protected against aggressive polling by **Upstash Sli
 
 ### 3. Asynchronous Job Queues via Upstash QStash
 Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's standard 10s maximum execution limits:
-1. An admin triggers the background queue via `/api/jobs/trigger-report`.
+1. An admin triggers the background queue via `/api/jobs/trigger-report` or users request admin access.
 2. The payload is offloaded over HTTP directly to Upstash QStash.
-3. QStash orchestrates retries and executes the `/api/webhooks/qstash-report` endpoint. 
+3. QStash orchestrates retries and executes the respective webhook endpoints (e.g. `notify-admin`). 
 4. **Edge Security:** The webhook strictly verifies the raw NodeJS stream against the HMAC signatures (`QSTASH_CURRENT_SIGNING_KEY`) blocking unauthorized local invocations.
+5. **Queue Logs:** Admins can actively monitor QStash background job status, delivery times, and errors directly through the dedicated `/queue-logs` dashboard view.
 
 ### 4. High-Performance Front-End Data Handling
 | Technique | Where | Why |
 |---|---|---|
-| **`useInfiniteQuery`** | Main Datagrid | Replaced standard pagination with `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
+| **`useInfiniteQuery`** | Main Datagrid | Cursor-based database pagination against Postgres paired with an `IntersectionObserver` sentinel auto-loading batches of 50 chunks against Zustand-managed filters. |
+| **`react-window`** | Main Datagrid | Highly optimized DOM node virtualization using `FixedSizeList` to render 10,000+ rows smoothly without exhausting client memory. |
 | **Optimistic Updates** | Status Toggling | UI patches local Apollo/Tanstack caches instantly before server acknowledgment. Automatic rollback on backend failure. |
 | **`useMemo` / `React.memo`** | Table Rows | Stops sibling rows from entirely re-rendering when modifying independent `useState` variables in the parent map. |
 

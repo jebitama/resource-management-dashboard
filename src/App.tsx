@@ -18,6 +18,7 @@ import { AdminDashboard } from '@/features/admin/AdminDashboard';
 import { DashboardView } from '@/features/dashboard/DashboardView';
 import { ResourcesView } from '@/features/resources/ResourcesView';
 import { LiveFeedView } from '@/features/live-feed/LiveFeedView';
+import { QueueLogs } from '@/features/queue/QueueLogs';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewId>('dashboard');
@@ -58,6 +59,9 @@ export default function App() {
                 )}
                 {currentView === 'admin' && (
                   <AdminDashboard key="admin" />
+                )}
+                {currentView === 'queue-logs' && (
+                  <QueueLogs key="queue-logs" />
                 )}
               </AnimatePresence>
             </main>

@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 // ---------- Types ----------
 
-export type ViewId = 'dashboard' | 'resources' | 'live-feed' | 'admin';
+export type ViewId = 'dashboard' | 'resources' | 'live-feed' | 'admin' | 'queue-logs';
 
 interface SidebarProps {
   currentView: ViewId;
@@ -69,6 +69,15 @@ const NAV_ITEMS: NavItem[] = [
          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
       </svg>
     ),
+  },
+  {
+    id: 'queue-logs',
+    labelKey: 'Queue Logs',
+    icon: (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z" />
+      </svg>
+    ),
   }
 ];
 
@@ -82,7 +91,7 @@ export const Sidebar = memo(function Sidebar({ currentView, onNavigate }: Sideba
   const [isAccessModalOpen, setIsAccessModalOpen] = useState(false);
 
   const visibleNavItems = NAV_ITEMS.filter((item) => {
-    if (item.id === 'admin' && !hasElevatedAccess) return false;
+    if ((item.id === 'admin' || item.id === 'queue-logs') && !hasElevatedAccess) return false;
     return true;
   });
 

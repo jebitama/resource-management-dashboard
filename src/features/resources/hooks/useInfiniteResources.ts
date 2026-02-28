@@ -16,7 +16,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useRef, useCallback, useMemo, useEffect } from 'react';
 import type { Resource } from '@/types';
-import { generateResources } from '@/lib/mockData';
+
+import { useRBAC } from '@/hooks/useRBAC';
 
 // ---------- Types ----------
 
@@ -32,45 +33,55 @@ interface UseInfiniteResourcesOptions {
   enabled?: boolean;
 }
 
-// ---------- Mock API ----------
-
 const PAGE_SIZE_DEFAULT = 50;
 
 /**
- * Simulates a paginated API endpoint returning a cursor-based page.
- * In production, this would call GET /api/resources?cursor=xxx&limit=50
+ * Calls the backend paginated endpoint
  */
 async function fetchResourcePage(params: {
   cursor: string | null;
   pageSize: number;
+  token: string | null;
 }): Promise<ResourcePage> {
-  // Simulate realistic network latency
-  await new Promise((resolve) => setTimeout(resolve, Math.random() * 300 + 200));
-
-  const pageIndex = params.cursor ? parseInt(params.cursor, 10) : 0;
-  const allResources = generateResources(params.pageSize);
-
-  // Simulate total dataset of 10,000+ items
-  const totalCount = 10247;
-  const hasMore = (pageIndex + 1) * params.pageSize < totalCount;
-
-  return {
-    data: allResources,
-    nextCursor: hasMore ? String(pageIndex + 1) : null,
-    totalCount,
-    hasMore,
+  const { cursor, pageSize, token } = params;
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
   };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const queryParams = new URLSearchParams({
+    limit: pageSize.toString(),
+  });
+
+  if (cursor) {
+    queryParams.append('cursor', cursor);
+  }
+
+  const res = await fetch(`/api/resources/list?${queryParams.toString()}`, { headers });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch resources');
+  }
+
+  return res.json();
 }
 
 // ---------- Hook ----------
 
 export function useInfiniteResources(options: UseInfiniteResourcesOptions = {}) {
   const { pageSize = PAGE_SIZE_DEFAULT, enabled = true } = options;
+  const { getToken } = useRBAC();
 
   const query = useInfiniteQuery({
     queryKey: ['resources', 'infinite', pageSize],
-    queryFn: ({ pageParam }) =>
-      fetchResourcePage({ cursor: pageParam, pageSize }),
+    queryFn: async ({ pageParam }) => {
+      const token = await getToken();
+      return fetchResourcePage({ cursor: pageParam, pageSize, token });
+    },
 
     /**
      * initialPageParam: Starting cursor value (null = first page).
