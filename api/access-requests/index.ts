@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyRateLimit } from '../_utils/ratelimit.js';
-import { requireAuthRole } from '../_utils/auth.js';
-import { prisma } from '../_utils/db.js';
+import { applyRateLimit } from '../_utils/ratelimit';
+import { requireAuthRole } from '../_utils/auth';
+import { prisma } from '../_utils/db';
 import { Client as QStashClient } from '@upstash/qstash';
 
 const qstash = new QStashClient({ token: process.env.QSTASH_TOKEN || '' });

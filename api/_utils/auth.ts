@@ -1,14 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClerkClient, verifyToken } from '@clerk/backend';
-import { prisma } from './db.js';
+import { prisma } from './db';
 
 let _clerkClient: any = null;
 
 const getClerkClient = () => {
   if (_clerkClient) return _clerkClient;
   _clerkClient = createClerkClient({
-    secretKey: process.env.CLERK_SECRET_KEY,
-    publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY,
+    secretKey: process.env.CLERK_SECRET_KEY || '',
+    publishableKey: process.env.VITE_CLERK_PUBLISHABLE_KEY || '',
   });
   return _clerkClient;
 };
@@ -23,12 +23,16 @@ export const requireAuthRole = (allowedRoles: string[]) => {
       }
 
       const token = authHeader.split(' ')[1];
+      if (!token) {
+        res.status(401).json({ error: 'Unauthorized: Missing token' });
+        return null;
+      }
       
       let verified;
       try {
         verified = await verifyToken(token, {
-          secretKey: process.env.CLERK_SECRET_KEY, // Will fallback to JWKS if undefined
-          jwtKey: process.env.CLERK_JWT_KEY, // Optional, typically provided in dashboard 
+          secretKey: process.env.CLERK_SECRET_KEY || '', 
+          jwtKey: process.env.CLERK_JWT_KEY || '', 
         });
       } catch (verifyErr: any) {
         console.warn('Token verification failed:', verifyErr?.message || verifyErr);
