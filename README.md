@@ -40,7 +40,7 @@ This project follows a strict **feature-based architecture** combined with a **V
     │   ├── live-feed/      # Real-time WebSocket event log
     │   └── resources/      # Infinite-scroll virtualized data management
     ├── graphql/            # Apollo Client integrations
-    ├── hooks/              # Shared Custom Hooks (useRBAC, useSocketData...)
+    ├── types/              # Domain-specific TypeScript declarations (resources, queries, common)
     └── store/              # Zustand state management
 ```
 
@@ -48,7 +48,7 @@ This project follows a strict **feature-based architecture** combined with a **V
 
 ### 1. Identity & Role-Based Access Control (RBAC)
 - **Clerk Identity Hub:** Highly-customized Google & Email Auth using `@clerk/clerk-react`.
-- **Zero-Trust Default:** A Vercel Serverless Webhook securely intercepts `user.created` Svix events and provisions a strictly-bound `USER` directly into the Prisma Database.
+- **Identity Synthesis:** A Vercel Serverless Webhook securely intercepts `user.created` Svix events. Additionally, the `requireAuthRole` middleware performs **Identity Synchronization**—fetching full name and email data via `getClerkClient().users.getUser(userId)` to ensure local Prisma records are always populated with source-of-truth metadata during their first session.
 - **Admin Elevation Workflow:** Restricted users can submit Justification Petitions. `ADMIN`/`SUPERADMIN` users unlock the exclusive **Admin Console** where they can audit requests, escalate permissions, and modify backend database roles interactively.
 
 ### 2. Upstash Redis Rate Limiting
@@ -82,6 +82,11 @@ Heavy computational workloads (like end-of-month SLA rollups) bypass Vercel's st
 Production builds are heavily locked down for private intranets:
 - **`robots.txt` Disallow All:** Prevent rogue Web Crawlers from scraping Vercel Deploy domains.
 - **Zero `any` Typings:** Exhaustive discriminated unions validate Socket connections enforcing complete TypeScript rigidness.
+
+### 7. Senior Infrastructure Patterns
+- **API Project References:** Unlike basic "flat" repositories, the `api/` directory utilizes a **Dedicated `api/tsconfig.json`** with `moduleResolution: "bundler"`. This enables clean, extensionless imports in serverless functions while maintaining strict type safety for Vercel's build pipeline.
+- **Modular Type Architecture:** Core types are decoupled into domain-driven modules (`src/types/resources.ts`, `queries.ts`, etc.) preventing the "God File" anti-pattern and improving IDE performance.
+- **Standardized Environment Management:** Coherent environment variable mapping (e.g., `QSTASH_TOKEN`) ensures security configurations are easily auditable across local, staging, and production environments.
 
 ---
 
